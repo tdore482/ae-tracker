@@ -262,3 +262,8 @@ window.toggleSidebar = function() {
   if (sidebar) sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('show');
 };
+
+window.getInitials = function(name) {
+  if (!name || name === 'Unknown') return 'UN';
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+};

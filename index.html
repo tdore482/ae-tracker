@@ -137,6 +137,7 @@
             <table class="data-table">
               <thead>
                 <tr>
+                  <th class="th-avatar"></th>
                   <th>#</th>
                   <th>Date</th>
                   <th>Customer</th>
@@ -347,16 +348,17 @@
       if (filterVal !== 'all') orders = orders.filter(o => o.payment === filterVal);
       orders = orders.slice(-15).reverse();
       document.getElementById('orderBody').innerHTML = orders.length ? orders.map(o => `
-        <tr>
+        <tr class="order-row">
+          <td class="td-avatar"><div class="avatar-circle">${getInitials(o.customer)}</div></td>
           <td class="td-no">#${String(o.id).padStart(3, '0')}</td>
-          <td class="td-muted">${fmtDate(o.date)}</td>
+          <td class="td-date">${fmtDate(o.date)}</td>
           <td class="td-name">${o.customer}</td>
-          <td><span class="payment-pill">${o.payment}</span></td>
-          <td class="td-muted">${getCourierNameSync(o.courierId)}</td>
+          <td class="td-payment"><span class="payment-pill">${o.payment}</span></td>
+          <td class="td-courier">${getCourierNameSync(o.courierId)}</td>
           <td class="td-amount">${fmt(o.amount)}</td>
-          <td>${statusBadge(o.status)}</td>
+          <td class="td-status">${statusBadge(o.status)}</td>
         </tr>
-      `).join('') : `<tr><td colspan="7"><div class="empty-state"><p>No orders found</p></div></td></tr>`;
+      `).join('') : `<tr><td colspan="8"><div class="empty-state"><p>No orders found</p></div></td></tr>`;
     }
 
     function getCourierNameSync(id) {

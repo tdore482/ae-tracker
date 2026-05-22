@@ -154,6 +154,7 @@
           <table class="data-table">
             <thead>
               <tr>
+                <th class="th-avatar"></th>
                 <th>#</th>
                 <th onclick="sortBy('date')" style="cursor:pointer">Date ↕</th>
                 <th>Customer</th>
@@ -336,16 +337,17 @@
         `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total}`;
 
       document.getElementById('orderBody').innerHTML = slice.length ? slice.map(o => `
-        <tr>
+        <tr class="order-row">
+          <td class="td-avatar"><div class="avatar-circle">${getInitials(o.customer)}</div></td>
           <td class="td-no">#${String(o.id).padStart(3, '0')}</td>
-          <td class="td-muted">${fmtDate(o.date)}</td>
+          <td class="td-date">${fmtDate(o.date)}</td>
           <td class="td-name">${o.customer}</td>
-          <td class="td-muted">${o.phone}</td>
-          <td><span class="payment-pill">${o.payment}</span></td>
-          <td class="td-muted">${getCourierName(o.courierId)}</td>
+          <td class="td-phone">${o.phone}</td>
+          <td class="td-payment"><span class="payment-pill">${o.payment}</span></td>
+          <td class="td-courier">${getCourierName(o.courierId)}</td>
           <td class="td-amount">${fmt(o.amount)}</td>
-          <td>${statusBadge(o.status)}</td>
-          <td>
+          <td class="td-status">${statusBadge(o.status)}</td>
+          <td class="td-actions">
             <div class="actions-cell">
               <button class="btn btn-sm btn-icon" title="Quick status" onclick="cycleStatus(${o.id})">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -359,7 +361,7 @@
             </div>
           </td>
         </tr>
-      `).join('') : `<tr><td colspan="9"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>No orders match your filters</p></div></td></tr>`;
+      `).join('') : `<tr><td colspan="10"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>No orders match your filters</p></div></td></tr>`;
 
       let btns = '';
       for (let i = 1; i <= pages; i++) {

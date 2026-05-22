@@ -708,6 +708,22 @@ body {
 }
 .sidebar-overlay.show { display: block; animation: fadeIn 0.15s ease; }
 
+/* ── AVATAR CIRCLE ───────────────────────────────────────── */
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  background: #F3F4F6;
+  color: #374151;
+}
+.th-avatar { width: 48px; }
+.td-avatar { width: 48px; }
+
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
@@ -732,4 +748,37 @@ body {
   .content { padding: 1rem; }
   .metric-grid { grid-template-columns: 1fr 1fr; }
   .data-table th, .data-table td { padding: 10px 1rem; }
+
+  /* Mobile Orders List View */
+  .data-table, .data-table tbody { display: block; width: 100%; }
+  .data-table thead { display: none; }
+  .data-table tr.order-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    grid-template-areas: 
+      "avatar name amount"
+      "avatar date status"
+      ". actions actions";
+    gap: 4px 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    background: #fff;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .data-table tr.order-row td { padding: 0; border: none; }
+  
+  .data-table tr.order-row td.td-no, 
+  .data-table tr.order-row td.td-phone, 
+  .data-table tr.order-row td.td-payment, 
+  .data-table tr.order-row td.td-courier { display: none; }
+  
+  .td-avatar { grid-area: avatar; display: flex; align-items: center; justify-content: center; height: 100%; }
+  .td-name { grid-area: name; align-self: end; font-size: 15px !important; font-weight: 500; color: var(--text); }
+  .td-date { grid-area: date; align-self: start; font-size: 12px; color: var(--muted); }
+  .td-amount { grid-area: amount; align-self: end; font-size: 15px !important; font-weight: 500; text-align: right; }
+  .td-status { grid-area: status; align-self: start; display: flex; justify-content: flex-end; }
+  .td-actions { grid-area: actions; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 12px; }
 }
