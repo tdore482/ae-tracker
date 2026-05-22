@@ -197,7 +197,7 @@ const DB = {
     return (await this._get('customers', { order: 'name.asc' })) || [];
   },
   async saveCustomers(list) {
-    await this._replace('customers', list);
+    await this._replace('customers', list, toSnake);
   },
   async addCustomer(c) {
     const list = await this.getCustomers();
@@ -217,7 +217,7 @@ const DB = {
     return (await this._get('couriers', { order: 'name.asc' })) || [];
   },
   async saveCouriers(list) {
-    await this._replace('couriers', list);
+    await this._replace('couriers', list, toSnake);
   },
   async addCourier(c) {
     const list = await this.getCouriers();

@@ -539,11 +539,11 @@
       reader.onload = async e => {
         try {
           const data = JSON.parse(e.target.result);
-          if (data.orders) await DB.saveOrders(data.orders);
-          if (data.customers) await DB.saveCustomers(data.customers);
           if (data.couriers) await DB.saveCouriers(data.couriers);
           if (data.payments) await DB.savePayments(data.payments);
           if (data.settings) await DB.saveSettings(data.settings);
+          if (data.customers) await DB.saveCustomers(data.customers);
+          if (data.orders) await DB.saveOrders(data.orders);
           showToast('Data restored successfully', 'success');
           location.reload();
         } catch {
