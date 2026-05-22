@@ -60,7 +60,8 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar">
   <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
   <div class="nav-section">Main</div>
   <a class="nav-item" href="index.html">
@@ -103,7 +104,12 @@
 
 <main class="main">
   <header class="topbar">
-    <div class="topbar-title">Deliveries</div>
+      <div class="topbar-left" style="display:flex;align-items:center;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-title">Deliveries</div>
+      </div>
     <div class="topbar-right">
       <button class="btn" onclick="assignUnassigned()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/></svg>

@@ -45,7 +45,8 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar">
   <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
   <div class="nav-section">Main</div>
   <a class="nav-item" href="index.html">
@@ -88,7 +89,12 @@
 
 <main class="main">
   <header class="topbar">
-    <div class="topbar-title">Customers</div>
+      <div class="topbar-left" style="display:flex;align-items:center;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-title">Customers</div>
+      </div>
     <div class="topbar-right">
       <button class="btn btn-primary" onclick="openNewCustomer()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

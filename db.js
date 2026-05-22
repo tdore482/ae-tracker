@@ -255,3 +255,10 @@ const DB = {
 };
 
 DB.ready = DB.seed();
+
+window.toggleSidebar = function() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('show');
+};
