@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings · AE Tracker</title>
+  <meta name="description" content="Configure AE Tracker – manage couriers, payment methods, and general settings.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .settings-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .settings-nav-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .settings-nav-item:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--text);
+    }
+
+    .settings-nav-item.active {
+      background: var(--text);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .settings-panel {
+      display: none;
+    }
+
+    .settings-panel.active {
+      display: block;
+    }
+
+    .courier-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .courier-row:last-child {
+      border-bottom: none;
+    }
+
+    .danger-zone {
+      border: 1px solid #FCA5A5;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      background: #FFF5F5;
+    }
+
+    .danger-zone h3 {
+      font-size: 15px;
+      color: var(--danger);
+      margin-bottom: 8px;
+    }
+
+    .danger-zone p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
+    <div class="nav-section">Main</div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="orders.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      Orders
+    </a>
+    <a class="nav-item" href="customers.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+      </svg>
+      Customers
+    </a>
+    <a class="nav-item" href="deliveries.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3" />
+        <rect x="9" y="11" width="14" height="10" rx="2" />
+        <circle cx="12" cy="21" r="1" />
+        <circle cx="20" cy="21" r="1" />
+      </svg>
+      Deliveries
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section">Reports</div>
+    <a class="nav-item" href="revenue.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+      Revenue
+    </a>
+    <a class="nav-item active" href="settings.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+      </svg>
+      Settings
+    </a>
+    <div class="sidebar-footer">
+      <div class="avatar" id="sidebarAvatar">AE</div>
+      <div class="avatar-info" style="flex:1;min-width:0">
+        <div class="name" id="sidebarName">Admin</div>
+        <div class="role" id="sidebarBranch" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Campus Branch</div>
+      </div>
+      <button onclick="DB.logout(); window.location.href='login.html'" title="Logout" style="cursor:pointer;border:none;background:transparent;color:var(--muted);padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">Settings</div>
+    </header>
+
+    <div class="content">
+      <div class="settings-layout">
+
+        <!-- Settings nav -->
+        <div>
+          <div class="settings-nav">
+            <div class="settings-nav-item active" onclick="switchTab('general')">General</div>
+            <div class="settings-nav-item" onclick="switchTab('couriers')">Couriers</div>
+            <div class="settings-nav-item" onclick="switchTab('payments')">Payment Methods</div>
+            <div class="settings-nav-item" onclick="switchTab('data')">Data & Export</div>
+          </div>
+        </div>
+
+        <!-- Panels -->
+        <div>
+
+          <!-- GENERAL -->
+          <div class="settings-panel active" id="panel-general">
+            <div class="settings-section">
+              <h2>General Settings</h2>
+              <div style="display:flex;flex-direction:column;gap:16px;max-width:420px">
+                <div class="form-field">
+                  <label class="form-label">Admin Name</label>
+                  <input class="form-input" id="set-adminName" placeholder="Your name">
+                  <span class="form-hint">Appears in the sidebar and exports</span>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Branch Name</label>
+                  <input class="form-input" id="set-branch" placeholder="e.g. Campus Branch">
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Currency Symbol</label>
+                  <input class="form-input" id="set-currency" placeholder="e.g. MK">
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Admin Passcode</label>
+                  <input type="password" class="form-input" id="set-passcode" placeholder="0000">
+                </div>
+                <button class="btn btn-primary" style="width:fit-content" onclick="saveGeneral()">Save Changes</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- COURIERS -->
+          <div class="settings-panel" id="panel-couriers">
+            <div class="settings-section">
+              <h2>Courier Management</h2>
+              <div id="courierList" style="margin-bottom:1.5rem"></div>
+              <div
+                style="background:var(--sidebar);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;max-width:420px">
+                <div style="font-size:13px;font-weight:500;margin-bottom:12px">Add New Courier</div>
+                <div class="grid-2" style="margin-bottom:10px">
+                  <div class="form-field">
+                    <label class="form-label">Name *</label>
+                    <input class="form-input" id="c-name" placeholder="Courier name">
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label">Phone</label>
+                    <input class="form-input" id="c-phone" placeholder="265 8XX XXX XXX">
+                  </div>
+                </div>
+                <div class="form-field" style="margin-bottom:10px">
+                  <label class="form-label">Passcode</label>
+                  <input type="password" class="form-input" id="c-passcode" placeholder="0000">
+                </div>
+                <button class="btn btn-primary" onclick="addCourier()">Add Courier</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT METHODS -->
+          <div class="settings-panel" id="panel-payments">
+            <div class="settings-section">
+              <h2>Payment Methods</h2>
+              <div id="paymentTagList" class="tag-list" style="margin-bottom:1rem"></div>
+              <div style="display:flex;gap:8px;max-width:360px">
+                <input class="form-input" id="new-payment" placeholder="e.g. Airtel Money" style="flex:1"
+                  onkeydown="if(event.key==='Enter')addPayment()">
+                <button class="btn btn-primary" onclick="addPayment()">Add</button>
+              </div>
+              <p class="form-hint" style="margin-top:8px">These options appear in order forms and filters</p>
+            </div>
+          </div>
+
+          <!-- DATA -->
+          <div class="settings-panel" id="panel-data">
+            <div class="settings-section">
+              <h2>Data & Export</h2>
+              <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
+                <button class="btn" style="width:fit-content" onclick="exportAll()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export All Orders (CSV)
+                </button>
+                <button class="btn" style="width:fit-content" onclick="exportCustomers()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export Customers (CSV)
+                </button>
+                <button class="btn" style="width:fit-content" onclick="backupData()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  Backup All Data (JSON)
+                </button>
+                <button class="btn" style="width:fit-content" onclick="document.getElementById('restoreInput').click()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Restore from JSON Backup
+                </button>
+                <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+              </div>
+              <div class="danger-zone">
+                <h3>Danger Zone</h3>
+                <p>This will permanently delete ALL orders, customers and settings. This cannot be undone.</p>
+                <button class="btn btn-danger" onclick="resetAll()">Reset All Data</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- COURIER EDIT MODAL -->
+  <div class="modal-overlay" id="courierModal" onclick="if(event.target===this)closeCourierModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Courier</div>
+        <button class="modal-close" onclick="closeCourierModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label">Name *</label>
+          <input class="form-input" id="ec-name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="ec-phone">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Passcode</label>
+          <input type="password" class="form-input" id="ec-passcode">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="ec-active">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeCourierModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCourier()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <div class="confirm-body">
+        <div class="confirm-title" id="confirmTitle">Confirm</div>
+        <div class="confirm-msg" id="confirmMsg"></div>
+      </div>
+      <div class="confirm-footer">
+        <button class="btn" onclick="closeConfirm()">Cancel</button>
+        <button class="btn btn-danger" id="confirmBtn" onclick="">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="db.js"></script>
+  <script>
+    let editingCourierId = null;
+
+    function switchTab(tab) {
+      document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.settings-panel').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('panel-' + tab).classList.add('active');
+    }
+
+    async function loadGeneral() {
+      const s = await DB.getSettings();
+      document.getElementById('set-adminName').value = s.adminName || 'Admin';
+      document.getElementById('set-branch').value = s.branch || 'Campus Branch';
+      document.getElementById('set-currency').value = s.currency || 'MK';
+      document.getElementById('set-passcode').value = s.adminPasscode || '0000';
+    }
+    async function saveGeneral() {
+      const s = await DB.getSettings();
+      s.adminName = document.getElementById('set-adminName').value.trim() || 'Admin';
+      s.branch = document.getElementById('set-branch').value.trim() || 'Campus Branch';
+      s.currency = document.getElementById('set-currency').value.trim() || 'MK';
+      s.adminPasscode = document.getElementById('set-passcode').value || '0000';
+      await DB.saveSettings(s);
+      document.getElementById('sidebarName').textContent = s.adminName;
+      document.getElementById('sidebarBranch').textContent = s.branch;
+      document.getElementById('sidebarAvatar').textContent = s.adminName.slice(0, 2).toUpperCase();
+      showToast('Settings saved', 'success');
+    }
+
+    async function renderCourierList() {
+      const couriers = await DB.getCouriers();
+      const AV = ['#C4622D', '#2563EB', '#059669', '#7C3AED', '#DB2777'];
+      document.getElementById('courierList').innerHTML = couriers.map((c, i) => `
+    <div class="courier-row">
+      <div class="courier-av" style="background:${AV[i % AV.length]};width:36px;height:36px;font-size:12px">
+        ${c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${c.phone || 'No phone'}</div>
+      </div>
+      <span class="status ${c.active ? 'status-delivered' : 'status-pending'}">
+        <span class="status-dot"></span>${c.active ? 'Active' : 'Inactive'}
+      </span>
+      <button class="btn btn-sm" onclick="openEditCourier(${c.id})">Edit</button>
+      <button class="btn btn-sm" onclick="toggleCourier(${c.id})">${c.active ? 'Deactivate' : 'Activate'}</button>
+      <button class="btn btn-sm" onclick="deleteCourierConfirm(${c.id})" style="color:var(--danger)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+      </button>
+    </div>
+  `).join('');
+    }
+
+    async function addCourier() {
+      const name = document.getElementById('c-name').value.trim();
+      if (!name) { showToast('Name is required', 'danger'); return; }
+      const passcode = document.getElementById('c-passcode').value || '0000';
+      await DB.addCourier({ name, phone: document.getElementById('c-phone').value.trim() || '', active: true, passcode });
+      document.getElementById('c-name').value = '';
+      document.getElementById('c-phone').value = '';
+      document.getElementById('c-passcode').value = '';
+      await renderCourierList();
+      showToast(`${name} added as courier`, 'success');
+    }
+
+    async function toggleCourier(id) {
+      const couriers = await DB.getCouriers();
+      const c = couriers.find(x => x.id === id);
+      if (!c) return;
+      await DB.updateCourier(id, { active: !c.active });
+      await renderCourierList();
+      showToast(`${c.name} ${!c.active ? 'activated' : 'deactivated'}`);
+    }
+
+    function deleteCourierConfirm(id) {
+      (async () => {
+        const couriers = await DB.getCouriers();
+        const c = couriers.find(x => x.id === id);
+        openConfirm('Delete Courier', `Delete "${c.name}"? Orders assigned to them will show unassigned.`, async () => {
+          await DB.deleteCourier(id);
+          await renderCourierList();
+          showToast('Courier removed');
+        });
+      })();
+    }
+
+    async function openEditCourier(id) {
+      const couriers = await DB.getCouriers();
+      const c = couriers.find(x => x.id === id);
+      if (!c) return;
+      editingCourierId = id;
+      document.getElementById('ec-name').value = c.name;
+      document.getElementById('ec-phone').value = c.phone || '';
+      document.getElementById('ec-passcode').value = c.passcode || '0000';
+      document.getElementById('ec-active').value = String(c.active);
+      document.getElementById('courierModal').classList.add('open');
+    }
+    function closeCourierModal() { document.getElementById('courierModal').classList.remove('open'); }
+    async function saveCourier() {
+      const name = document.getElementById('ec-name').value.trim();
+      if (!name) { showToast('Name required', 'danger'); return; }
+      await DB.updateCourier(editingCourierId, {
+        name,
+        phone: document.getElementById('ec-phone').value.trim() || '',
+        passcode: document.getElementById('ec-passcode').value || '0000',
+        active: document.getElementById('ec-active').value === 'true',
+      });
+      closeCourierModal();
+      await renderCourierList();
+      showToast('Courier updated', 'success');
+    }
+
+    async function renderPaymentTags() {
+      const payments = await DB.getPayments();
+      document.getElementById('paymentTagList').innerHTML = payments.map(p => `
+    <div class="tag">${p}
+      <span class="tag-remove" onclick="removePayment('${p.replace(/'/g, "\\'")}')">×</span>
+    </div>
+  `).join('');
+    }
+
+    async function addPayment() {
+      const val = document.getElementById('new-payment').value.trim();
+      if (!val) return;
+      const list = await DB.getPayments();
+      if (list.includes(val)) { showToast('Already exists', 'danger'); return; }
+      list.push(val);
+      await DB.savePayments(list);
+      document.getElementById('new-payment').value = '';
+      await renderPaymentTags();
+      showToast(`"${val}" added`, 'success');
+    }
+
+    async function removePayment(name) {
+      const list = (await DB.getPayments()).filter(p => p !== name);
+      if (list.length === 0) { showToast('At least one payment method required', 'danger'); return; }
+      await DB.savePayments(list);
+      await renderPaymentTags();
+      showToast(`"${name}" removed`);
+    }
+
+    async function exportAll() {
+      const [orders, couriers] = await Promise.all([DB.getOrders(), DB.getCouriers()]);
+      const rows = [['#', 'Date', 'Customer', 'Phone', 'Location', 'Payment', 'Courier', 'Amount', 'Status', 'Notes']];
+      orders.forEach(o => {
+        const c = couriers.find(x => x.id === o.courierId);
+        rows.push([o.id, o.date, o.customer, o.phone, o.location, o.payment, c ? c.name : '—', o.amount, o.status, o.notes || '']);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'AE_All_Orders.csv';
+      a.click();
+      showToast('Exported', 'success');
+    }
+
+    async function exportCustomers() {
+      const list = await DB.getCustomers();
+      const rows = [['ID', 'Name', 'Phone', 'Location', 'Notes']];
+      list.forEach(c => rows.push([c.id, c.name, c.phone, c.location, c.notes || '']));
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'AE_Customers.csv';
+      a.click();
+      showToast('Customers exported', 'success');
+    }
+
+    async function backupData() {
+      const [orders, customers, couriers, payments, settings] = await Promise.all([
+        DB.getOrders(), DB.getCustomers(), DB.getCouriers(), DB.getPayments(), DB.getSettings()
+      ]);
+      const data = { orders, customers, couriers, payments, settings, backupDate: new Date().toISOString() };
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      a.download = `AE_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      showToast('Backup downloaded', 'success');
+    }
+
+    function restoreData(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.orders) await DB.saveOrders(data.orders);
+          if (data.customers) await DB.saveCustomers(data.customers);
+          if (data.couriers) await DB.saveCouriers(data.couriers);
+          if (data.payments) await DB.savePayments(data.payments);
+          if (data.settings) await DB.saveSettings(data.settings);
+          showToast('Data restored successfully', 'success');
+          location.reload();
+        } catch {
+          showToast('Invalid backup file', 'danger');
+        }
+      };
+      reader.readAsText(file);
+      evt.target.value = '';
+    }
+
+    function resetAll() {
+      openConfirm('Reset All Data', 'This will permanently delete ALL data. Are you absolutely sure?', async () => {
+        const [orders, customers, couriers, payments] = await Promise.all([
+          DB.getOrders(), DB.getCustomers(), DB.getCouriers(), DB.getPayments()
+        ]);
+        for (const o of orders) await DB.deleteOrder(o.id).catch(() => {});
+        for (const c of customers) await DB.deleteCustomer(c.id).catch(() => {});
+        for (const c of couriers) await DB.deleteCourier(c.id).catch(() => {});
+        await DB.savePayments([]);
+        await DB.saveSettings({ currency: 'MK', branch: 'Campus Branch', adminName: 'Admin', nextOrderId: 1, adminPasscode: '0000' });
+        showToast('All data cleared');
+        setTimeout(() => location.reload(), 1000);
+      });
+    }
+
+    function openConfirm(title, msg, action) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMsg').textContent = msg;
+      document.getElementById('confirmBtn').onclick = () => { closeConfirm(); action(); };
+      document.getElementById('confirmOverlay').classList.add('open');
+    }
+    function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' toast-' + type : '');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => { t.className = 'toast'; }, 2800);
+    }
+
+    (async () => {
+      await DB.ready;
+      const user = DB.getCurrentUser();
+      if (!user) window.location.href = 'login.html';
+      else if (user.role === 'courier') window.location.href = 'courier_dashboard.html';
+
+      const s = await DB.getSettings();
+      document.getElementById('sidebarName').textContent = s.adminName || 'Admin';
+      document.getElementById('sidebarBranch').textContent = s.branch || 'Campus Branch';
+      document.getElementById('sidebarAvatar').textContent = (s.adminName || 'AE').slice(0, 2).toUpperCase();
+
+      await Promise.all([loadGeneral(), renderCourierList(), renderPaymentTags()]);
+    })();
+  </script>
+</body>
+
+</html>

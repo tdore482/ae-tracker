@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Courier Dashboard · AE Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Courier specific overrides for mobile-friendly view */
+    .main { margin-left: 0; }
+    .topbar { justify-content: space-between; }
+    .courier-metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;
+    }
+    .c-metric {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem;
+    }
+    .c-metric-val { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1; margin-bottom: 0.25rem; }
+    .c-metric-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .order-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .oc-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .oc-title { font-weight: 500; font-size: 14px; }
+    .oc-sub { font-size: 12px; color: var(--muted); }
+    .oc-amount { font-family: 'DM Serif Display', serif; font-size: 16px; }
+    .oc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+    .oc-actions { display: flex; gap: 6px; }
+    
+    /* Hide desktop table on small screens, show cards instead */
+    @media (max-width: 600px) {
+      .desktop-table { display: none; }
+    }
+    @media (min-width: 601px) {
+      .mobile-cards { display: none; }
+    }
+    .tab-nav {
+      display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+    }
+    .tab {
+      padding: 0.75rem 0; font-weight: 500; font-size: 14px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab.active { color: var(--text); border-bottom-color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title" style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'DM Serif Display',serif;font-size:20px;letter-spacing:-0.4px;">AE<span style="color:var(--accent)">.</span> Tracker</span>
+      </div>
+      <div class="topbar-right">
+        <div style="font-size:13px;font-weight:500;margin-right:10px;" id="welcomeMsg">Welcome</div>
+        <button class="btn" onclick="doLogout()">Logout</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Deliveries</h1>
+          <p>Manage your runs and log new deliveries.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openNewDelivery()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Delivery
+        </button>
+      </div>
+
+      <div class="courier-metrics">
+        <div class="c-metric">
+          <div class="c-metric-val" id="m-mine">0</div>
+          <div class="c-metric-lbl">My Assigned</div>
+        </div>
+        <div class="c-metric">
+          <div class="c-metric-val" id="m-transit">0</div>
+          <div class="c-metric-lbl">In Transit (Mine)</div>
+        </div>
+        <div class="c-metric">
+          <div class="c-metric-val" id="m-unassigned" style="color:var(--danger)">0</div>
+          <div class="c-metric-lbl">Unassigned (Pool)</div>
+        </div>
+      </div>
+
+      <div class="tab-nav">
+        <div class="tab active" id="tab-all" onclick="setTab('all')">All Orders</div>
+        <div class="tab" id="tab-mine" onclick="setTab('mine')">My Deliveries</div>
+        <div class="tab" id="tab-unassigned" onclick="setTab('unassigned')">Unassigned</div>
+      </div>
+
+      <div class="section-card desktop-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Customer</th><th>Location</th><th>Courier</th><th>Amount</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="desktopBody"></tbody>
+        </table>
+      </div>
+
+      <div class="mobile-cards" id="mobileCards"></div>
+
+    </div>
+  </main>
+
+  <!-- ADD/EDIT DELIVERY MODAL -->
+  <div class="modal-overlay" id="deliveryModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Add Delivery</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label">Customer Name</label>
+          <input class="form-input" id="f-customer" placeholder="Full name">
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Phone</label>
+            <input class="form-input" id="f-phone" placeholder="Phone number">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Location</label>
+            <input class="form-input" id="f-location" value="Campus">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Amount (Cost) *</label>
+            <input class="form-input" id="f-amount" type="number" placeholder="0">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Payment Method</label>
+            <select class="form-select" id="f-payment"></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="f-status">
+              <option value="delivered">Delivered</option>
+              <option value="transit">In Transit</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Date</label>
+            <input class="form-input" id="f-date" type="date">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitDelivery()">Save Delivery</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="db.js"></script>
+  <script>
+    let currentTab = 'all';
+
+    function fmt(n) { return 'MK ' + Number(n).toLocaleString(); }
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+    function statusBadge(s) {
+      const map = { delivered: 'status-delivered', transit: 'status-transit', pending: 'status-pending', cancelled: 'status-cancelled' };
+      const lbl = { delivered: 'Delivered', transit: 'In Transit', pending: 'Pending', cancelled: 'Cancelled' };
+      return `<span class="status ${map[s] || 'status-pending'}"><span class="status-dot"></span>${lbl[s] || s}</span>`;
+    }
+    async function getCourierName(id) {
+      if (!id) return '<span style="color:var(--danger)">Unassigned</span>';
+      const couriers = await DB.getCouriers();
+      const c = couriers.find(x => x.id === id);
+      return c ? c.name : '—';
+    }
+
+    function doLogout() {
+      DB.logout();
+      window.location.href = 'login.html';
+    }
+
+    async function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      await render();
+    }
+
+    async function render() {
+      const allOrders = await DB.getOrders();
+      const myOrders = allOrders.filter(o => o.courierId === user.id);
+      const unassigned = allOrders.filter(o => !o.courierId && o.status !== 'cancelled');
+
+      document.getElementById('m-mine').textContent = myOrders.length;
+      document.getElementById('m-transit').textContent = myOrders.filter(o => o.status === 'transit').length;
+      document.getElementById('m-unassigned').textContent = unassigned.length;
+
+      let displayOrders = allOrders;
+      if (currentTab === 'mine') displayOrders = myOrders;
+      if (currentTab === 'unassigned') displayOrders = unassigned;
+
+      displayOrders = displayOrders.slice().reverse();
+
+      const desktopRows = await Promise.all(displayOrders.map(async o => `
+        <tr>
+          <td class="td-no">#${String(o.id).padStart(3,'0')}</td>
+          <td class="td-muted">${fmtDate(o.date)}</td>
+          <td class="td-name">${o.customer}</td>
+          <td class="td-muted">${o.location}</td>
+          <td class="td-muted">${await getCourierName(o.courierId)}</td>
+          <td class="td-amount">${fmt(o.amount)}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${getActionsHtml(o)}</td>
+        </tr>
+      `));
+      document.getElementById('desktopBody').innerHTML = desktopRows.join('') ||
+        `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">No orders found</td></tr>`;
+
+      const mobileCards = await Promise.all(displayOrders.map(async o => `
+        <div class="order-card">
+          <div class="oc-header">
+            <div>
+              <div class="oc-title">#${String(o.id).padStart(3,'0')} - ${o.customer}</div>
+              <div class="oc-sub">${fmtDate(o.date)} · ${o.location}</div>
+              <div class="oc-sub" style="margin-top:4px">Courier: ${await getCourierName(o.courierId)}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="oc-amount">${fmt(o.amount)}</div>
+              <div style="margin-top:4px">${statusBadge(o.status)}</div>
+            </div>
+          </div>
+          <div class="oc-footer">
+            <span style="font-size:11px;color:var(--muted)">${o.payment}</span>
+            <div class="oc-actions">${getActionsHtml(o)}</div>
+          </div>
+        </div>
+      `));
+      document.getElementById('mobileCards').innerHTML = mobileCards.join('') ||
+        `<div style="text-align:center;padding:2rem;color:var(--muted)">No orders found</div>`;
+    }
+
+    function getActionsHtml(o) {
+      if (!o.courierId && o.status !== 'cancelled') {
+        return `<button class="btn btn-sm btn-primary" onclick="assignToMe(${o.id})">Assign to me</button>`;
+      }
+      if (o.courierId === user.id) {
+        if (o.status === 'transit' || o.status === 'pending') {
+          return `<button class="btn btn-sm btn-success" onclick="markDelivered(${o.id})">Delivered</button>`;
+        } else if (o.status === 'delivered') {
+          return `<span style="font-size:11px;color:var(--success)">Completed</span>`;
+        }
+      }
+      return '';
+    }
+
+    async function assignToMe(id) {
+      await DB.updateOrder(id, { courierId: user.id });
+      showToast('Order assigned to you', 'success');
+      await render();
+    }
+
+    async function markDelivered(id) {
+      await DB.updateOrder(id, { status: 'delivered' });
+      showToast('Order marked as delivered', 'success');
+      await render();
+    }
+
+    async function populateForm() {
+      const payments = await DB.getPayments();
+      document.getElementById('f-payment').innerHTML = payments
+        .map(p => `<option value="${p}">${p}</option>`).join('');
+      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    }
+
+    async function openNewDelivery() {
+      await populateForm();
+      ['f-customer', 'f-phone', 'f-amount'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f-location').value = 'Campus';
+      document.getElementById('f-status').value = 'delivered';
+      document.getElementById('deliveryModal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('deliveryModal').classList.remove('open'); }
+
+    async function submitDelivery() {
+      const amount = parseFloat(document.getElementById('f-amount').value);
+      if (!amount || amount <= 0) return showToast('Enter valid amount', 'danger');
+
+      const order = {
+        date: document.getElementById('f-date').value || new Date().toISOString().split('T')[0],
+        customer: document.getElementById('f-customer').value.trim() || 'Unknown',
+        phone: document.getElementById('f-phone').value.trim() || '—',
+        location: document.getElementById('f-location').value.trim() || 'Campus',
+        payment: document.getElementById('f-payment').value,
+        courierId: user.id,
+        amount: amount,
+        status: document.getElementById('f-status').value,
+        notes: ''
+      };
+
+      await DB.addOrder(order);
+      showToast('Delivery logged successfully!', 'success');
+      closeModal();
+      await render();
+    }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' toast-' + type : '');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => { t.className = 'toast'; }, 2800);
+    }
+
+    (async () => {
+      const user = DB.getCurrentUser();
+      if (!user || user.role !== 'courier') {
+        window.location.href = 'login.html';
+        return;
+      }
+      window.user = user;
+      document.getElementById('welcomeMsg').textContent = `Welcome, ${user.name}`;
+
+      await render();
+    })();
+  </script>
+</body>
+</html>

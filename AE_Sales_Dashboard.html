@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AE Sales Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FFFFFF;
+    --sidebar: #F9FAFB;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.07);
+    --border-md: rgba(0,0,0,0.12);
+    --text: #111827;
+    --muted: #6B7280;
+    --accent: #C4622D;
+    --success: #059669;
+    --warning: #F97316;
+    --danger: #DC2626;
+    --info: #2563EB;
+    --radius: 12px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    letter-spacing: -0.4px;
+    color: var(--text);
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+  }
+  .logo span { color: var(--accent); }
+
+  .nav-section {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+  .nav-item.active { background: var(--text); color: #fff; font-weight: 500; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-icon { opacity: 0.5; font-size: 15px; }
+
+  .nav-divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 0.75rem 0.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: #fff;
+    flex-shrink: 0;
+  }
+
+  .avatar-info .name { font-size: 12px; font-weight: 500; }
+  .avatar-info .role { font-size: 11px; color: var(--muted); }
+
+  /* MAIN */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .topbar-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-md);
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.15s;
+  }
+
+  .btn:hover { background: var(--sidebar); }
+
+  .btn-primary {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  .btn-primary:hover { background: #1f2937; }
+
+  .content { padding: 2rem; }
+
+  /* METRIC CARDS */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .metric-card:hover { border-color: var(--border-md); }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .metric-label .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  .metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    letter-spacing: -1px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .metric-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .metric-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+
+  .badge-up { background: #D1FAE5; color: #065F46; }
+  .badge-warn { background: #FEF3C7; color: #92400E; }
+
+  /* GRID LAYOUT */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+  }
+
+  /* SECTION CARD */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    letter-spacing: -0.2px;
+  }
+
+  .section-action {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* STATUS BADGE */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+  .status-delivered { background: #D1FAE5; color: #065F46; }
+  .status-delivered .status-dot { background: #059669; }
+  .status-transit { background: #FEF3C7; color: #92400E; }
+  .status-transit .status-dot { background: #F97316; animation: blink 1.5s infinite; }
+  .status-pending { background: #F3F4F6; color: #374151; }
+  .status-pending .status-dot { background: #9CA3AF; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ORDER TABLE */
+  .order-table { width: 100%; border-collapse: collapse; }
+
+  .order-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--sidebar);
+  }
+
+  .order-table td {
+    padding: 12px 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .order-table tr:last-child td { border-bottom: none; }
+  .order-table tr:hover td { background: #FAFAFA; }
+
+  .order-no { font-weight: 500; color: var(--muted); font-size: 12px; }
+  .order-customer { font-weight: 500; }
+  .order-amount { font-family: 'DM Serif Display', serif; font-size: 15px; }
+
+  .payment-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #F3F4F6;
+    color: #374151;
+  }
+
+  /* RIGHT COLUMN */
+  .right-col { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  /* PAYMENT BREAKDOWN */
+  .payment-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 1.5rem;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .payment-row:last-child { border-bottom: none; }
+
+  .payment-bar-wrap { flex: 1; height: 4px; background: var(--sidebar); border-radius: 2px; overflow: hidden; }
+  .payment-bar { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+  .payment-method { font-size: 12px; font-weight: 500; min-width: 90px; }
+  .payment-pct { font-size: 11px; color: var(--muted); min-width: 36px; text-align: right; }
+  .payment-amount { font-size: 12px; font-weight: 500; min-width: 70px; text-align: right; }
+
+  /* DELIVERY TEAM */
+  .courier-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .courier-card:last-child { border-bottom: none; }
+
+  .courier-av {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: #fff;
+    flex-shrink: 0;
+  }
+
+  .courier-name { font-size: 13px; font-weight: 500; }
+  .courier-deliveries { font-size: 11px; color: var(--muted); }
+  .courier-revenue { font-family: 'DM Serif Display', serif; font-size: 14px; margin-left: auto; }
+
+  /* MINI CHART */
+  .chart-area {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 80px;
+    margin-bottom: 6px;
+  }
+
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .bar:hover { opacity: 0.75; }
+
+  .bar-label { font-size: 9px; color: var(--muted); text-align: center; }
+
+  /* SUBSCRIPTION / CUSTOMER SECTION */
+  .sub-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .sub-row:last-child { border-bottom: none; }
+
+  .sub-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .sub-location { font-size: 11px; color: var(--muted); }
+  .sub-count { font-size: 12px; color: var(--muted); min-width: 50px; text-align: right; }
+
+  /* FADE IN */
+  .fade { opacity: 0; transform: translateY(10px); animation: fadeIn 0.4s ease forwards; }
+  @keyframes fadeIn { to { opacity: 1; transform: none; } }
+  .d1 { animation-delay: 0.05s; }
+  .d2 { animation-delay: 0.12s; }
+  .d3 { animation-delay: 0.2s; }
+  .d4 { animation-delay: 0.28s; }
+  .d5 { animation-delay: 0.36s; }
+  .d6 { animation-delay: 0.44s; }
+
+  /* ADD ORDER MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 420px;
+    border: 1px solid var(--border-md);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+  }
+
+  .modal-close {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--muted);
+  }
+
+  .modal-close:hover { background: var(--sidebar); }
+
+  .modal-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 12px; }
+
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+
+  .form-input, .form-select {
+    height: 38px;
+    border: 1px solid var(--border-md);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    background: var(--bg);
+    width: 100%;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem; right: 1.5rem;
+    background: var(--text);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">AE<span>.</span> Tracker</div>
+
+  <div class="nav-section">Main</div>
+  <a class="nav-item active" href="#">
+    <span class="nav-icon">◉</span> Dashboard
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">◈</span> Orders
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">◎</span> Customers
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">◇</span> Deliveries
+  </a>
+
+  <div class="nav-divider"></div>
+
+  <div class="nav-section">Reports</div>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">▷</span> Revenue
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">◁</span> Export
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">△</span> Settings
+  </a>
+
+  <div class="sidebar-footer">
+    <div class="avatar">AE</div>
+    <div class="avatar-info">
+      <div class="name">Admin</div>
+      <div class="role">Campus Branch</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-title">Sales Dashboard</div>
+    <div class="topbar-right">
+      <button class="btn" onclick="exportData()">↓ Export</button>
+      <button class="btn btn-primary" onclick="openModal()">+ New Order</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- METRICS -->
+    <div class="metric-grid">
+      <div class="metric-card fade d1">
+        <div class="metric-label"><span class="dot" style="background:#059669"></span>Total Revenue</div>
+        <div class="metric-value">MK 27,450</div>
+        <div class="metric-sub">25 transactions · Apr 2026 <span class="metric-badge badge-up">↑ Active</span></div>
+      </div>
+      <div class="metric-card fade d2">
+        <div class="metric-label"><span class="dot" style="background:#F97316"></span>Active Deliveries</div>
+        <div class="metric-value">6</div>
+        <div class="metric-sub">S'busiso: 4 · Praise: 2 <span class="metric-badge badge-warn">In transit</span></div>
+      </div>
+      <div class="metric-card fade d3">
+        <div class="metric-label"><span class="dot" style="background:#2563EB"></span>Avg Order Value</div>
+        <div class="metric-value">MK 1,098</div>
+        <div class="metric-sub">Highest: MK 2,500 · Lowest: MK 800</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+
+      <!-- LEFT: ORDER FEED -->
+      <div>
+        <div class="section-card fade d4">
+          <div class="section-header">
+            <div class="section-title">Recent Orders</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select class="form-select" style="height:30px;font-size:11px;padding:0 8px;width:auto;" onchange="filterOrders(this.value)">
+                <option value="all">All payments</option>
+                <option value="Mobile Money">Mobile Money</option>
+                <option value="Cash">Cash</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+              <span class="section-action">View all</span>
+            </div>
+          </div>
+          <table class="order-table" id="orderTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Location</th>
+                <th>Payment</th>
+                <th>Courier</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orderBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- PAYMENT BREAKDOWN -->
+        <div class="section-card fade d5">
+          <div class="section-header">
+            <div class="section-title">Payment Methods</div>
+          </div>
+          <div class="chart-area" style="padding-bottom:0">
+            <div class="bar-chart" id="barChart"></div>
+          </div>
+          <div id="paymentRows"></div>
+        </div>
+
+        <!-- DELIVERY TEAM -->
+        <div class="section-card fade d6">
+          <div class="section-header">
+            <div class="section-title">Delivery Team</div>
+          </div>
+          <div id="courierList"></div>
+        </div>
+
+        <!-- TOP CUSTOMERS -->
+        <div class="section-card fade d6">
+          <div class="section-header">
+            <div class="section-title">Top Customers</div>
+          </div>
+          <div id="customerList"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ADD ORDER MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Order</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label class="form-label">Customer Name</label>
+          <input class="form-input" id="f-customer" placeholder="Full name" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="f-phone" placeholder="265 8XX XXX XXX" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label class="form-label">Amount (MK)</label>
+          <input class="form-input" id="f-amount" type="number" placeholder="0" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Payment Method</label>
+          <select class="form-select" id="f-payment">
+            <option>Mobile Money</option>
+            <option>Cash</option>
+            <option>Bank Transfer</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label class="form-label">Location</label>
+          <input class="form-input" id="f-location" value="Campus" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Courier</label>
+          <select class="form-select" id="f-courier">
+            <option>S'busiso</option>
+            <option>Praise</option>
+            <option>Peter Kalua</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Notes (optional)</label>
+        <input class="form-input" id="f-notes" placeholder="Any delivery notes..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitOrder()">Add Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RAW_ORDERS = [
+  {no:1, date:'07 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:"S'busiso",amount:2100,status:'delivered'},
+  {no:2, date:'08 Apr',customer:'—',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:"S'busiso",amount:800,status:'delivered'},
+  {no:3, date:'08 Apr',customer:'Catherine Mkamanga',phone:'—',location:'Campus',payment:'Mobile Money',courier:"S'busiso",amount:800,status:'delivered'},
+  {no:4, date:'08 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:"S'busiso",amount:850,status:'delivered'},
+  {no:5, date:'09 Apr',customer:'Catherine Mkamanga',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:'Praise',amount:900,status:'delivered'},
+  {no:6, date:'10 Apr',customer:'Catherine Mkamanga',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:'Praise',amount:900,status:'delivered'},
+  {no:7, date:'12 Apr',customer:'Catherine Mkamanga',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:'—',amount:900,status:'transit'},
+  {no:8, date:'13 Apr',customer:'Catherine Mkamanga',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:'—',amount:900,status:'transit'},
+  {no:9, date:'13 Apr',customer:'—',phone:'265 885 390 222',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'transit'},
+  {no:10,date:'14 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:1600,status:'pending'},
+  {no:11,date:'14 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:850,status:'pending'},
+  {no:12,date:'14 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:2500,status:'pending'},
+  {no:13,date:'15 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:1700,status:'pending'},
+  {no:14,date:'15 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:15,date:'15 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:16,date:'16 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:17,date:'17 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:18,date:'17 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:800,status:'pending'},
+  {no:19,date:'17 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:20,date:'18 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:21,date:'18 Apr',customer:'—',phone:'—',location:'Campus',payment:'Bank Transfer',courier:'—',amount:800,status:'pending'},
+  {no:22,date:'19 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:850,status:'pending'},
+  {no:23,date:'20 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:24,date:'21 Apr',customer:'—',phone:'—',location:'Campus',payment:'Mobile Money',courier:'—',amount:800,status:'pending'},
+  {no:25,date:'22 Apr',customer:'—',phone:'—',location:'Campus',payment:'Cash',courier:'—',amount:2400,status:'pending'},
+];
+
+let orders = [...RAW_ORDERS];
+let filterVal = 'all';
+
+function statusBadge(s) {
+  if (s === 'delivered') return '<span class="status status-delivered"><span class="status-dot"></span>Delivered</span>';
+  if (s === 'transit')   return '<span class="status status-transit"><span class="status-dot"></span>In Transit</span>';
+  return '<span class="status status-pending"><span class="status-dot"></span>Pending</span>';
+}
+
+function renderOrders() {
+  const filtered = filterVal === 'all' ? orders : orders.filter(o => o.payment === filterVal);
+  const tbody = document.getElementById('orderBody');
+  tbody.innerHTML = filtered.slice(-15).reverse().map(o => `
+    <tr>
+      <td class="order-no">#${String(o.no).padStart(3,'0')}</td>
+      <td style="color:var(--muted);font-size:12px">${o.date}</td>
+      <td class="order-customer">${o.customer}</td>
+      <td style="font-size:12px;color:var(--muted)">${o.location}</td>
+      <td><span class="payment-pill">${o.payment}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${o.courier}</td>
+      <td class="order-amount">MK ${o.amount.toLocaleString()}</td>
+      <td>${statusBadge(o.status)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterOrders(val) {
+  filterVal = val;
+  renderOrders();
+}
+
+function renderPayments() {
+  const methods = {};
+  orders.forEach(o => { methods[o.payment] = (methods[o.payment]||0) + o.amount; });
+  const total = Object.values(methods).reduce((a,b)=>a+b,0);
+  const colors = { 'Mobile Money': '#2563EB', 'Cash': '#059669', 'Bank Transfer': '#C4622D' };
+  const sorted = Object.entries(methods).sort((a,b)=>b[1]-a[1]);
+
+  const maxVal = Math.max(...sorted.map(([,v])=>v));
+  const chart = document.getElementById('barChart');
+  chart.innerHTML = sorted.map(([m, v]) => `
+    <div class="bar-col">
+      <div class="bar" style="height:${Math.round((v/maxVal)*68)}px;background:${colors[m]||'#9CA3AF'}" title="${m}: MK ${v.toLocaleString()}"></div>
+      <div class="bar-label">${m.split(' ')[0]}</div>
+    </div>
+  `).join('');
+
+  const rows = document.getElementById('paymentRows');
+  rows.innerHTML = sorted.map(([m, v]) => {
+    const pct = Math.round((v/total)*100);
+    return `
+    <div class="payment-row">
+      <div class="payment-method">${m}</div>
+      <div class="payment-bar-wrap"><div class="payment-bar" style="width:${pct}%;background:${colors[m]||'#9CA3AF'}"></div></div>
+      <div class="payment-pct">${pct}%</div>
+      <div class="payment-amount">MK ${v.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCouriers() {
+  const couriers = {};
+  orders.forEach(o => {
+    if (o.courier !== '—') {
+      if (!couriers[o.courier]) couriers[o.courier] = { deliveries: 0, revenue: 0 };
+      couriers[o.courier].deliveries++;
+      couriers[o.courier].revenue += o.amount;
+    }
+  });
+  const avColors = ["#C4622D","#2563EB","#059669","#7C3AED"];
+  const list = document.getElementById('courierList');
+  const sorted = Object.entries(couriers).sort((a,b)=>b[1].deliveries-a[1].deliveries);
+  list.innerHTML = sorted.map(([name, data], i) => `
+    <div class="courier-card">
+      <div class="courier-av" style="background:${avColors[i%avColors.length]}">${name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      <div>
+        <div class="courier-name">${name}</div>
+        <div class="courier-deliveries">${data.deliveries} deliveries</div>
+      </div>
+      <div class="courier-revenue">MK ${data.revenue.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function renderCustomers() {
+  const customers = {};
+  orders.forEach(o => {
+    const key = o.customer === '—' ? (o.phone !== '—' ? o.phone : 'Unknown') : o.customer;
+    if (!customers[key]) customers[key] = { orders: 0, total: 0 };
+    customers[key].orders++;
+    customers[key].total += o.amount;
+  });
+  const sorted = Object.entries(customers).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  const list = document.getElementById('customerList');
+  list.innerHTML = sorted.map(([name, data]) => `
+    <div class="sub-row">
+      <div>
+        <div class="sub-name">${name}</div>
+        <div class="sub-location">Campus · ${data.orders} order${data.orders>1?'s':''}</div>
+      </div>
+      <div class="sub-count">MK ${data.total.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function submitOrder() {
+  const customer = document.getElementById('f-customer').value || '—';
+  const phone = document.getElementById('f-phone').value || '—';
+  const amount = parseInt(document.getElementById('f-amount').value) || 0;
+  const payment = document.getElementById('f-payment').value;
+  const location = document.getElementById('f-location').value || 'Campus';
+  const courier = document.getElementById('f-courier').value;
+
+  if (!amount) { showToast('Please enter an amount'); return; }
+
+  const now = new Date();
+  const date = now.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  const newOrder = {
+    no: orders.length + 1,
+    date, customer, phone, location, payment, courier, amount, status: 'transit'
+  };
+  orders.push(newOrder);
+  renderOrders();
+  renderPayments();
+  renderCouriers();
+  renderCustomers();
+  closeModal();
+  showToast('Order #' + String(newOrder.no).padStart(3,'0') + ' added successfully');
+
+  ['f-customer','f-phone','f-amount','f-notes'].forEach(id => document.getElementById(id).value='');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function exportData() {
+  const rows = [['No','Date','Customer','Phone','Location','Payment','Courier','Amount','Status']];
+  orders.forEach(o => rows.push([o.no,o.date,o.customer,o.phone,o.location,o.payment,o.courier,o.amount,o.status]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'AE_Sales_Export.csv';
+  a.click();
+  showToast('Exported as CSV');
+}
+
+renderOrders();
+renderPayments();
+renderCouriers();
+renderCustomers();
+</script>
+</body>
+</html>

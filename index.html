@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · AE Tracker</title>
+  <meta name="description"
+    content="AE Tracker – Sales dashboard for campus branch. Track orders, revenue, deliveries and customers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
+
+    <div class="nav-section">Main</div>
+    <a class="nav-item active" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="orders.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      Orders
+    </a>
+    <a class="nav-item" href="customers.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+      </svg>
+      Customers
+    </a>
+    <a class="nav-item" href="deliveries.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3" />
+        <rect x="9" y="11" width="14" height="10" rx="2" />
+        <circle cx="12" cy="21" r="1" />
+        <circle cx="20" cy="21" r="1" />
+      </svg>
+      Deliveries
+    </a>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">Reports</div>
+    <a class="nav-item" href="revenue.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+      Revenue
+    </a>
+    <a class="nav-item" href="settings.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+      </svg>
+      Settings
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="avatar" id="sidebarAvatar">AE</div>
+      <div class="avatar-info" style="flex:1;min-width:0">
+        <div class="name" id="sidebarName">Admin</div>
+        <div class="role" id="sidebarBranch" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Campus Branch</div>
+      </div>
+      <button onclick="DB.logout(); window.location.href='login.html'" title="Logout" style="cursor:pointer;border:none;background:transparent;color:var(--muted);padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">Sales Dashboard</div>
+      <div class="topbar-right">
+        <button class="btn" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export
+        </button>
+        <button class="btn btn-primary" onclick="openNewOrder()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          New Order
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- METRICS -->
+      <div class="metric-grid" id="metricGrid"></div>
+
+      <!-- DASHBOARD GRID -->
+      <div class="dashboard-grid">
+
+        <!-- LEFT: ORDER FEED -->
+        <div>
+          <div class="section-card fade d4">
+            <div class="section-header">
+              <div class="section-title">Recent Orders</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="filter-select" id="paymentFilter" onchange="renderOrders()">
+                  <option value="all">All payments</option>
+                </select>
+                <a class="section-action" href="orders.html">View all →</a>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Payment</th>
+                  <th>Courier</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="orderBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right-col">
+
+          <!-- PAYMENT BREAKDOWN -->
+          <div class="section-card fade d5">
+            <div class="section-header">
+              <div class="section-title">Payment Methods</div>
+            </div>
+            <div style="padding:1.25rem 1.5rem 0">
+              <div class="bar-chart" id="barChart"></div>
+            </div>
+            <div id="paymentRows"></div>
+          </div>
+
+          <!-- DELIVERY TEAM -->
+          <div class="section-card fade d6">
+            <div class="section-header">
+              <div class="section-title">Delivery Team</div>
+              <a class="section-action" href="deliveries.html">View →</a>
+            </div>
+            <div id="courierList"></div>
+          </div>
+
+          <!-- TOP CUSTOMERS -->
+          <div class="section-card fade d6">
+            <div class="section-header">
+              <div class="section-title">Top Customers</div>
+              <a class="section-action" href="customers.html">View →</a>
+            </div>
+            <div id="customerList"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- NEW ORDER MODAL -->
+  <div class="modal-overlay" id="orderModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">New Order</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Customer Name</label>
+            <input class="form-input" id="f-customer" placeholder="Full name">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Phone</label>
+            <input class="form-input" id="f-phone" placeholder="265 8XX XXX XXX">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Amount (MK)</label>
+            <input class="form-input" id="f-amount" type="number" placeholder="0" min="0">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Payment Method</label>
+            <select class="form-select" id="f-payment"></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Location</label>
+            <input class="form-input" id="f-location" value="Campus">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Courier</label>
+            <select class="form-select" id="f-courier"></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label class="form-label">Date</label>
+            <input class="form-input" id="f-date" type="date">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="f-status">
+              <option value="transit">In Transit</option>
+              <option value="pending">Pending</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Notes (optional)</label>
+          <input class="form-input" id="f-notes" placeholder="Any delivery notes...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="modalSubmitBtn" onclick="submitOrder()">Add Order</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="db.js"></script>
+  <script>
+    const COLORS = { 'Mobile Money': '#2563EB', 'Cash': '#059669', 'Bank Transfer': '#C4622D' };
+    const AV_COLORS = ['#C4622D', '#2563EB', '#059669', '#7C3AED', '#DB2777'];
+    let editingOrderId = null;
+
+    function fmt(n) { return 'MK ' + Number(n).toLocaleString(); }
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+
+    function statusBadge(s) {
+      const map = { delivered: 'status-delivered', transit: 'status-transit', pending: 'status-pending', cancelled: 'status-cancelled' };
+      const label = { delivered: 'Delivered', transit: 'In Transit', pending: 'Pending', cancelled: 'Cancelled' };
+      return `<span class="status ${map[s] || 'status-pending'}"><span class="status-dot"></span>${label[s] || s}</span>`;
+    }
+
+    async function getCourierName(id) {
+      if (!id) return '—';
+      const couriers = await DB.getCouriers();
+      const c = couriers.find(x => x.id === id);
+      return c ? c.name : '—';
+    }
+
+    async function initFilters() {
+      const payments = await DB.getPayments();
+      document.getElementById('paymentFilter').innerHTML = '<option value="all">All payments</option>' +
+        payments.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+
+    async function populateOrderForm() {
+      const [payments, couriers] = await Promise.all([DB.getPayments(), DB.getCouriers()]);
+      document.getElementById('f-payment').innerHTML = payments.map(p => `<option value="${p}">${p}</option>`).join('');
+      document.getElementById('f-courier').innerHTML =
+        '<option value="">— Unassigned —</option>' +
+        couriers.filter(c => c.active).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (!document.getElementById('f-date').value) {
+        document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    async function openNewOrder() {
+      editingOrderId = null;
+      document.getElementById('modalTitle').textContent = 'New Order';
+      document.getElementById('modalSubmitBtn').textContent = 'Add Order';
+      await populateOrderForm();
+      ['f-customer', 'f-phone', 'f-amount', 'f-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f-location').value = 'Campus';
+      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('f-status').value = 'transit';
+      document.getElementById('orderModal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('orderModal').classList.remove('open'); }
+
+    async function submitOrder() {
+      const amount = parseFloat(document.getElementById('f-amount').value);
+      if (!amount || amount <= 0) { showToast('Please enter a valid amount', 'danger'); return; }
+      const courierId = parseInt(document.getElementById('f-courier').value) || null;
+      const order = {
+        date: document.getElementById('f-date').value || new Date().toISOString().split('T')[0],
+        customer: document.getElementById('f-customer').value.trim() || 'Unknown',
+        phone: document.getElementById('f-phone').value.trim() || '—',
+        location: document.getElementById('f-location').value.trim() || 'Campus',
+        payment: document.getElementById('f-payment').value,
+        courierId, amount,
+        status: document.getElementById('f-status').value,
+        notes: document.getElementById('f-notes').value.trim(),
+      };
+      if (editingOrderId) {
+        await DB.updateOrder(editingOrderId, order);
+        showToast(`Order #${String(editingOrderId).padStart(3, '0')} updated`);
+      } else {
+        const added = await DB.addOrder(order);
+        showToast(`Order #${String(added.id).padStart(3, '0')} added`, 'success');
+      }
+      closeModal();
+      await renderAll();
+    }
+
+    let _ordersCache = [];
+    async function loadOrders() {
+      _ordersCache = await DB.getOrders();
+    }
+
+    function renderOrders() {
+      const filterVal = document.getElementById('paymentFilter').value;
+      let orders = _ordersCache;
+      if (filterVal !== 'all') orders = orders.filter(o => o.payment === filterVal);
+      orders = orders.slice(-15).reverse();
+      document.getElementById('orderBody').innerHTML = orders.length ? orders.map(o => `
+        <tr>
+          <td class="td-no">#${String(o.id).padStart(3, '0')}</td>
+          <td class="td-muted">${fmtDate(o.date)}</td>
+          <td class="td-name">${o.customer}</td>
+          <td><span class="payment-pill">${o.payment}</span></td>
+          <td class="td-muted">${getCourierNameSync(o.courierId)}</td>
+          <td class="td-amount">${fmt(o.amount)}</td>
+          <td>${statusBadge(o.status)}</td>
+        </tr>
+      `).join('') : `<tr><td colspan="7"><div class="empty-state"><p>No orders found</p></div></td></tr>`;
+    }
+
+    function getCourierNameSync(id) {
+      if (!id) return '—';
+      const c = _couriersCache.find(x => x.id === id);
+      return c ? c.name : '—';
+    }
+    let _couriersCache = [];
+
+    function renderMetrics() {
+      const orders = _ordersCache;
+      const total = orders.reduce((s, o) => s + o.amount, 0);
+      const active = orders.filter(o => o.status === 'transit').length;
+      const avg = orders.length ? Math.round(total / orders.length) : 0;
+      const max = orders.length ? Math.max(...orders.map(o => o.amount)) : 0;
+      const min = orders.length ? Math.min(...orders.map(o => o.amount)) : 0;
+      document.getElementById('metricGrid').innerHTML = `
+        <div class="metric-card fade d1">
+          <div class="metric-label"><span class="dot" style="background:#059669"></span>Total Revenue</div>
+          <div class="metric-value">${fmt(total)}</div>
+          <div class="metric-sub">${orders.length} transactions <span class="metric-badge badge-up">↑ Active</span></div>
+        </div>
+        <div class="metric-card fade d2">
+          <div class="metric-label"><span class="dot" style="background:#F97316"></span>In Transit</div>
+          <div class="metric-value">${active}</div>
+          <div class="metric-sub">${orders.filter(o => o.status === 'pending').length} pending · ${orders.filter(o => o.status === 'delivered').length} delivered <span class="metric-badge badge-warn">Live</span></div>
+        </div>
+        <div class="metric-card fade d3">
+          <div class="metric-label"><span class="dot" style="background:#2563EB"></span>Avg Order Value</div>
+          <div class="metric-value">${fmt(avg)}</div>
+          <div class="metric-sub">High: ${fmt(max)} · Low: ${fmt(min)}</div>
+        </div>
+      `;
+    }
+
+    function renderPayments() {
+      const orders = _ordersCache;
+      const methods = {};
+      orders.forEach(o => { methods[o.payment] = (methods[o.payment] || 0) + o.amount; });
+      const total = Object.values(methods).reduce((a, b) => a + b, 0);
+      const sorted = Object.entries(methods).sort((a, b) => b[1] - a[1]);
+      const maxVal = Math.max(...sorted.map(([, v]) => v));
+      document.getElementById('barChart').innerHTML = sorted.map(([m, v]) => `
+        <div class="bar-col">
+          <div class="bar" style="height:${Math.round((v / maxVal) * 68)}px;background:${COLORS[m] || '#9CA3AF'}" title="${m}: ${fmt(v)}"></div>
+          <div class="bar-label">${m.split(' ')[0]}</div>
+        </div>
+      `).join('');
+      document.getElementById('paymentRows').innerHTML = sorted.map(([m, v]) => {
+        const pct = Math.round((v / total) * 100);
+        return `
+          <div class="payment-row">
+            <div class="payment-method">${m}</div>
+            <div class="payment-bar-wrap"><div class="payment-bar" style="width:${pct}%;background:${COLORS[m] || '#9CA3AF'}"></div></div>
+            <div class="payment-pct">${pct}%</div>
+            <div class="payment-amount">${fmt(v)}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderCouriers() {
+      const orders = _ordersCache;
+      const couriers = _couriersCache;
+      const stats = {};
+      orders.forEach(o => {
+        if (o.courierId) {
+          if (!stats[o.courierId]) stats[o.courierId] = { deliveries: 0, revenue: 0 };
+          stats[o.courierId].deliveries++;
+          stats[o.courierId].revenue += o.amount;
+        }
+      });
+      const sorted = Object.entries(stats).sort((a, b) => b[1].deliveries - a[1].deliveries);
+      document.getElementById('courierList').innerHTML = sorted.length ? sorted.map(([id, data], i) => {
+        const courier = couriers.find(c => c.id === parseInt(id));
+        const name = courier ? courier.name : 'Unknown';
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        return `
+          <div class="courier-card">
+            <div class="courier-av" style="background:${AV_COLORS[i % AV_COLORS.length]}">${initials}</div>
+            <div>
+              <div class="courier-name">${name}</div>
+              <div class="courier-deliveries">${data.deliveries} deliveries</div>
+            </div>
+            <div class="courier-revenue">${fmt(data.revenue)}</div>
+          </div>`;
+      }).join('') : '<div class="empty-state"><p>No courier data yet</p></div>';
+    }
+
+    function renderCustomers() {
+      const orders = _ordersCache;
+      const customers = {};
+      orders.forEach(o => {
+        const key = o.customer !== 'Unknown' ? o.customer : (o.phone !== '—' ? o.phone : 'Unknown');
+        if (!customers[key]) customers[key] = { orders: 0, total: 0 };
+        customers[key].orders++;
+        customers[key].total += o.amount;
+      });
+      const sorted = Object.entries(customers).sort((a, b) => b[1].total - a[1].total).slice(0, 5);
+      document.getElementById('customerList').innerHTML = sorted.map(([name, data]) => `
+        <div class="sub-row">
+          <div>
+            <div class="sub-name">${name}</div>
+            <div class="sub-location">${data.orders} order${data.orders > 1 ? 's' : ''}</div>
+          </div>
+          <div class="sub-count">${fmt(data.total)}</div>
+        </div>
+      `).join('');
+    }
+
+    async function renderAll() {
+      await Promise.all([loadOrders(), DB.getCouriers().then(c => _couriersCache = c)]);
+      renderMetrics();
+      renderOrders();
+      renderPayments();
+      renderCouriers();
+      renderCustomers();
+    }
+
+    async function exportCSV() {
+      const rows = [['#', 'Date', 'Customer', 'Phone', 'Location', 'Payment', 'Courier', 'Amount', 'Status']];
+      const orders = await DB.getOrders();
+      const couriers = await DB.getCouriers();
+      orders.forEach(o => {
+        const c = couriers.find(x => x.id === o.courierId);
+        rows.push([o.id, o.date, o.customer, o.phone, o.location, o.payment, c ? c.name : '—', o.amount, o.status]);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'AE_Sales_Export.csv';
+      a.click();
+      showToast('Exported as CSV', 'success');
+    }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' toast-' + type : '');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => { t.className = 'toast'; }, 2800);
+    }
+
+    (async () => {
+      await DB.ready;
+      const user = DB.getCurrentUser();
+      if (!user) window.location.href = 'login.html';
+      else if (user.role === 'courier') window.location.href = 'courier_dashboard.html';
+      const s = await DB.getSettings();
+      document.getElementById('sidebarName').textContent = s.adminName || 'Admin';
+      document.getElementById('sidebarBranch').textContent = s.branch || 'Campus Branch';
+      document.getElementById('sidebarAvatar').textContent = (s.adminName || 'AE').slice(0, 2).toUpperCase();
+      await initFilters();
+      await renderAll();
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revenue · AE Tracker</title>
+  <meta name="description" content="Revenue reports and analytics – daily, weekly and payment breakdown charts.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .rev-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .chart-section {
+      padding: 1.5rem;
+    }
+
+    .chart-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .summary-table td,
+    .summary-table th {
+      padding: 10px 1.5rem;
+    }
+
+    .period-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .period-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid var(--border-md);
+      background: var(--bg);
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+
+    .period-btn.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    .trend-up {
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .trend-down {
+      color: var(--danger);
+      font-weight: 500;
+    }
+
+    .big-chart-wrap {
+      padding: 1.5rem;
+    }
+
+    .big-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 160px;
+      margin-bottom: 4px;
+    }
+
+    .big-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .big-bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease, opacity 0.2s;
+      cursor: pointer;
+      min-width: 6px;
+    }
+
+    .big-bar:hover {
+      opacity: 0.75;
+    }
+
+    .big-bar-lbl {
+      font-size: 8px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
+    <div class="nav-section">Main</div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="orders.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      Orders
+    </a>
+    <a class="nav-item" href="customers.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+      </svg>
+      Customers
+    </a>
+    <a class="nav-item" href="deliveries.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3" />
+        <rect x="9" y="11" width="14" height="10" rx="2" />
+        <circle cx="12" cy="21" r="1" />
+        <circle cx="20" cy="21" r="1" />
+      </svg>
+      Deliveries
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-section">Reports</div>
+    <a class="nav-item active" href="revenue.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+      Revenue
+    </a>
+    <a class="nav-item" href="settings.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+      </svg>
+      Settings
+    </a>
+    <div class="sidebar-footer">
+      <div class="avatar" id="sidebarAvatar">AE</div>
+      <div class="avatar-info" style="flex:1;min-width:0">
+        <div class="name" id="sidebarName">Admin</div>
+        <div class="role" id="sidebarBranch" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Campus Branch</div>
+      </div>
+      <button onclick="DB.logout(); window.location.href='login.html'" title="Logout" style="cursor:pointer;border:none;background:transparent;color:var(--muted);padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">Revenue</div>
+      <div class="topbar-right">
+        <div class="period-btns">
+          <button class="period-btn active" id="btn7" onclick="setPeriod(7)">7 days</button>
+          <button class="period-btn" id="btn14" onclick="setPeriod(14)">14 days</button>
+          <button class="period-btn" id="btnAll" onclick="setPeriod(0)">All time</button>
+        </div>
+        <button class="btn" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- METRICS -->
+      <div class="metric-grid" id="revMetrics"></div>
+
+      <!-- MAIN CHART -->
+      <div class="section-card mb-2">
+        <div class="section-header">
+          <div class="section-title">Daily Revenue</div>
+        </div>
+        <div class="big-chart-wrap">
+          <div class="big-bars" id="bigBars"></div>
+          <div class="chart-label-row" id="bigLabels"></div>
+        </div>
+      </div>
+
+      <!-- GRID -->
+      <div class="rev-grid">
+
+        <!-- Payment breakdown -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Payment Breakdown</div>
+          </div>
+          <div class="chart-section">
+            <div class="bar-chart" id="pmtBarChart"></div>
+          </div>
+          <div id="pmtRows"></div>
+        </div>
+
+        <!-- Daily summary table -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Daily Summary</div>
+          </div>
+          <div style="overflow-y:auto;max-height:320px">
+            <table class="data-table summary-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Orders</th>
+                  <th>Revenue</th>
+                  <th>vs Prev</th>
+                </tr>
+              </thead>
+              <tbody id="summaryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="db.js"></script>
+  <script>
+    const PMT_COLORS = { 'Mobile Money': '#2563EB', 'Cash': '#059669', 'Bank Transfer': '#C4622D' };
+    let period = 7;
+
+    function fmt(n) { return 'MK ' + Number(n).toLocaleString(); }
+    function fmtDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); }
+
+    async function setPeriod(n) {
+      period = n;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(n === 7 ? 'btn7' : n === 14 ? 'btn14' : 'btnAll').classList.add('active');
+      await render();
+    }
+
+    async function getFiltered() {
+      const allOrders = await DB.getOrders();
+      if (!period) return allOrders;
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - period);
+      const cutStr = cutoff.toISOString().split('T')[0];
+      return allOrders.filter(o => o.date >= cutStr);
+    }
+
+    function getDailyMap(orders) {
+      const map = {};
+      orders.forEach(o => { map[o.date] = (map[o.date] || 0) + o.amount; });
+      return map;
+    }
+
+    async function render() {
+      const orders = await getFiltered();
+      const all = await DB.getOrders();
+      const total = orders.reduce((s, o) => s + o.amount, 0);
+      const count = orders.length;
+      const avg = count ? Math.round(total / count) : 0;
+      const dailyMap = getDailyMap(orders);
+      const days = Object.keys(dailyMap).sort();
+      const values = days.map(d => dailyMap[d]);
+      const maxVal = Math.max(...values, 1);
+
+      const prevOrders = all.filter(o => !orders.includes(o));
+      const prevTotal = prevOrders.reduce((s, o) => s + o.amount, 0);
+      const change = prevTotal ? Math.round(((total - prevTotal) / prevTotal) * 100) : null;
+
+      document.getElementById('revMetrics').innerHTML = `
+      <div class="metric-card fade d1">
+        <div class="metric-label"><span class="dot" style="background:#059669"></span>Total Revenue</div>
+        <div class="metric-value">${fmt(total)}</div>
+        <div class="metric-sub">${period ? 'Last ' + period + ' days' : 'All time'} ${change !== null ? `<span class="metric-badge ${change >= 0 ? 'badge-up' : 'badge-down'}">${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}%</span>` : ''}</div>
+      </div>
+      <div class="metric-card fade d2">
+        <div class="metric-label"><span class="dot" style="background:#2563EB"></span>Orders</div>
+        <div class="metric-value">${count}</div>
+        <div class="metric-sub">${days.length} active days</div>
+      </div>
+      <div class="metric-card fade d3">
+        <div class="metric-label"><span class="dot" style="background:#C4622D"></span>Avg per Order</div>
+        <div class="metric-value">${fmt(avg)}</div>
+        <div class="metric-sub">Per transaction average</div>
+      </div>
+    `;
+
+      const showDays = days.length > 20 ? days.slice(-20) : days;
+      document.getElementById('bigBars').innerHTML = showDays.map(d => {
+        const v = dailyMap[d] || 0;
+        const h = Math.round((v / maxVal) * 140);
+        return `<div class="big-bar-col">
+        <div class="big-bar" style="height:${h}px;background:var(--accent)" title="${fmtDate(d)}: ${fmt(v)}"></div>
+        <div class="big-bar-lbl">${fmtDate(d)}</div>
+      </div>`;
+      }).join('');
+
+      const pmtMap = {};
+      orders.forEach(o => { pmtMap[o.payment] = (pmtMap[o.payment] || 0) + o.amount; });
+      const pmtTotal = Object.values(pmtMap).reduce((a, b) => a + b, 0);
+      const pmtSorted = Object.entries(pmtMap).sort((a, b) => b[1] - a[1]);
+      const pmtMaxVal = Math.max(...pmtSorted.map(([, v]) => v), 1);
+
+      document.getElementById('pmtBarChart').innerHTML = pmtSorted.map(([m, v]) => `
+      <div class="bar-col">
+        <div class="bar" style="height:${Math.round((v / pmtMaxVal) * 68)}px;background:${PMT_COLORS[m] || '#9CA3AF'}" title="${m}: ${fmt(v)}"></div>
+        <div class="bar-label">${m.split(' ')[0]}</div>
+      </div>`).join('');
+
+      document.getElementById('pmtRows').innerHTML = pmtSorted.map(([m, v]) => {
+        const pct = pmtTotal ? Math.round((v / pmtTotal) * 100) : 0;
+        return `<div class="payment-row">
+        <div class="payment-method">${m}</div>
+        <div class="payment-bar-wrap"><div class="payment-bar" style="width:${pct}%;background:${PMT_COLORS[m] || '#9CA3AF'}"></div></div>
+        <div class="payment-pct">${pct}%</div>
+        <div class="payment-amount">${fmt(v)}</div>
+      </div>`;
+      }).join('');
+
+      const revDays = [...days].reverse();
+      document.getElementById('summaryBody').innerHTML = revDays.map((d, i) => {
+        const v = dailyMap[d];
+        const prev = revDays[i + 1] ? dailyMap[revDays[i + 1]] : null;
+        const diff = prev ? Math.round(((v - prev) / prev) * 100) : null;
+        const ordCount = orders.filter(o => o.date === d).length;
+        return `<tr>
+        <td class="td-muted">${fmtDate(d)}</td>
+        <td class="td-muted">${ordCount}</td>
+        <td class="td-amount">${fmt(v)}</td>
+        <td>${diff !== null ? `<span class="${diff >= 0 ? 'trend-up' : 'trend-down'}">${diff >= 0 ? '↑' : '↓'} ${Math.abs(diff)}%</span>` : '—'}</td>
+      </tr>`;
+      }).join('');
+    }
+
+    async function exportCSV() {
+      const orders = await getFiltered();
+      const rows = [['Date', 'Customer', 'Payment', 'Amount', 'Status']];
+      orders.forEach(o => rows.push([o.date, o.customer, o.payment, o.amount, o.status]));
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'AE_Revenue_Export.csv';
+      a.click();
+      showToast('Revenue data exported', 'success');
+    }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' toast-' + type : '');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => { t.className = 'toast'; }, 2800);
+    }
+
+    (async () => {
+      await DB.ready;
+      const user = DB.getCurrentUser();
+      if (!user) window.location.href = 'login.html';
+      else if (user.role === 'courier') window.location.href = 'courier_dashboard.html';
+
+      const s = await DB.getSettings();
+      document.getElementById('sidebarName').textContent = s.adminName || 'Admin';
+      document.getElementById('sidebarBranch').textContent = s.branch || 'Campus Branch';
+      document.getElementById('sidebarAvatar').textContent = (s.adminName || 'AE').slice(0, 2).toUpperCase();
+
+      await render();
+    })();
+  </script>
+</body>
+
+</html>

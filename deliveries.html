@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deliveries · AE Tracker</title>
+<meta name="description" content="Track deliveries by courier – assign, manage and monitor all delivery runs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.courier-panel {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.courier-list-panel { display: flex; flex-direction: column; gap: 0; }
+.courier-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 1.25rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.courier-list-item:last-child { border-bottom: none; }
+.courier-list-item:hover { background: rgba(0,0,0,0.02); }
+.courier-list-item.selected { background: var(--text); color: #fff; }
+.courier-list-item.selected .courier-deliveries,
+.courier-list-item.selected .courier-revenue { color: rgba(255,255,255,0.7); }
+.courier-list-item.selected .courier-av { box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+.delivery-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.delivery-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+.delivery-stat { text-align: center; }
+.delivery-stat-val { font-family: 'DM Serif Display', serif; font-size: 22px; }
+.delivery-stat-lbl { font-size: 11px; color: var(--muted); }
+.assign-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  border: 1px dashed var(--border-md);
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.assign-pill:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a class="logo" href="index.html">AE<span>.</span> Tracker</a>
+  <div class="nav-section">Main</div>
+  <a class="nav-item" href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </a>
+  <a class="nav-item" href="orders.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Orders
+  </a>
+  <a class="nav-item" href="customers.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    Customers
+  </a>
+  <a class="nav-item active" href="deliveries.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    Deliveries
+  </a>
+  <div class="nav-divider"></div>
+  <div class="nav-section">Reports</div>
+  <a class="nav-item" href="revenue.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Revenue
+  </a>
+  <a class="nav-item" href="settings.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </a>
+    <div class="sidebar-footer">
+      <div class="avatar" id="sidebarAvatar">AE</div>
+      <div class="avatar-info" style="flex:1;min-width:0">
+        <div class="name" id="sidebarName">Admin</div>
+        <div class="role" id="sidebarBranch" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Campus Branch</div>
+      </div>
+      <button onclick="DB.logout(); window.location.href='login.html'" title="Logout" style="cursor:pointer;border:none;background:transparent;color:var(--muted);padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-title">Deliveries</div>
+    <div class="topbar-right">
+      <button class="btn" onclick="assignUnassigned()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/></svg>
+        Assign Unassigned
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- Metrics row -->
+    <div class="metric-grid" id="deliveryMetrics"></div>
+
+    <div class="courier-panel">
+
+      <!-- Left: courier list -->
+      <div class="section-card">
+        <div class="section-header"><div class="section-title">Couriers</div></div>
+        <div class="courier-list-panel" id="courierListPanel"></div>
+      </div>
+
+      <!-- Right: orders for selected courier -->
+      <div class="section-card" id="detailPanel">
+        <div class="empty-state" style="padding:3rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/></svg>
+          <p>Select a courier to view their deliveries</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assignModal" onclick="if(event.target===this)closeAssignModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Order</div>
+      <button class="modal-close" onclick="closeAssignModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Assign order <strong id="assignOrderNo"></strong> to:</p>
+      <div class="form-field">
+        <label class="form-label">Courier</label>
+        <select class="form-select" id="assignCourierSel"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAssign()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK ASSIGN MODAL -->
+<div class="modal-overlay" id="bulkModal" onclick="if(event.target===this)closeBulkModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Unassigned Orders</div>
+      <button class="modal-close" onclick="closeBulkModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted)" id="bulkCount"></p>
+      <div class="form-field">
+        <label class="form-label">Assign all to courier</label>
+        <select class="form-select" id="bulkCourierSel"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeBulkModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmBulkAssign()">Assign All</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="db.js"></script>
+<script>
+const AV_COLORS = ['#C4622D','#2563EB','#059669','#7C3AED','#DB2777'];
+let selectedCourierId = null, assigningOrderId = null;
+
+function fmt(n)  { return 'MK ' + Number(n).toLocaleString(); }
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+function statusBadge(s) {
+  const map = { delivered:'status-delivered',transit:'status-transit',pending:'status-pending',cancelled:'status-cancelled' };
+  const lbl = { delivered:'Delivered',transit:'In Transit',pending:'Pending',cancelled:'Cancelled' };
+  return `<span class="status ${map[s]||'status-pending'}"><span class="status-dot"></span>${lbl[s]||s}</span>`;
+}
+
+async function getStats() {
+  const [orders, couriers] = await Promise.all([DB.getOrders(), DB.getCouriers()]);
+  const stats = {};
+  couriers.forEach(c => { stats[c.id] = { deliveries:0,revenue:0,transit:0,delivered:0 }; });
+  orders.forEach(o => {
+    if (!o.courierId) return;
+    if (!stats[o.courierId]) stats[o.courierId] = { deliveries:0,revenue:0,transit:0,delivered:0 };
+    stats[o.courierId].deliveries++;
+    stats[o.courierId].revenue += o.amount;
+    if (o.status==='transit')   stats[o.courierId].transit++;
+    if (o.status==='delivered') stats[o.courierId].delivered++;
+  });
+  return stats;
+}
+
+async function renderMetrics() {
+  const [orders, couriers] = await Promise.all([DB.getOrders(), DB.getCouriers()]);
+  const transit = orders.filter(o=>o.status==='transit').length;
+  const unass   = orders.filter(o=>!o.courierId&&o.status!=='cancelled').length;
+  const activeC = couriers.filter(c=>c.active).length;
+  document.getElementById('deliveryMetrics').innerHTML = `
+    <div class="metric-card fade d1">
+      <div class="metric-label"><span class="dot" style="background:#F97316"></span>In Transit</div>
+      <div class="metric-value">${transit}</div>
+      <div class="metric-sub">Active deliveries right now</div>
+    </div>
+    <div class="metric-card fade d2">
+      <div class="metric-label"><span class="dot" style="background:#DC2626"></span>Unassigned</div>
+      <div class="metric-value">${unass}</div>
+      <div class="metric-sub">Need a courier <span class="metric-badge badge-warn">Action needed</span></div>
+    </div>
+    <div class="metric-card fade d3">
+      <div class="metric-label"><span class="dot" style="background:#059669"></span>Active Couriers</div>
+      <div class="metric-value">${activeC}</div>
+      <div class="metric-sub">Couriers available</div>
+    </div>
+  `;
+}
+
+async function renderCourierList() {
+  const [couriers, stats] = await Promise.all([DB.getCouriers(), getStats()]);
+  document.getElementById('courierListPanel').innerHTML = couriers.map((c,i) => {
+    const s   = stats[c.id] || { deliveries:0,revenue:0 };
+    const ini = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const isSel = selectedCourierId === c.id;
+    return `
+    <div class="courier-list-item${isSel?' selected':''}" onclick="selectCourier(${c.id})">
+      <div class="courier-av" style="background:${AV_COLORS[i%AV_COLORS.length]}">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div class="courier-name">${c.name}</div>
+        <div class="courier-deliveries">${s.deliveries} deliveries · ${c.active?'Active':'Inactive'}</div>
+      </div>
+      <div class="courier-revenue">${fmt(s.revenue)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function selectCourier(id) {
+  selectedCourierId = id;
+  await renderCourierList();
+  await renderDetail();
+}
+
+async function renderDetail() {
+  const [couriers, allOrders] = await Promise.all([DB.getCouriers(), DB.getOrders()]);
+  const courier = couriers.find(c=>c.id===selectedCourierId);
+  if (!courier) return;
+  const orders  = allOrders.filter(o=>o.courierId===selectedCourierId);
+  const revenue = orders.reduce((s,o)=>s+o.amount,0);
+  const transit = orders.filter(o=>o.status==='transit').length;
+  const deliv   = orders.filter(o=>o.status==='delivered').length;
+  const ini     = courier.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const i       = couriers.findIndex(c=>c.id===selectedCourierId);
+
+  document.getElementById('detailPanel').innerHTML = `
+    <div class="delivery-detail-header">
+      <div class="courier-av" style="background:${AV_COLORS[i%AV_COLORS.length]};width:48px;height:48px;font-size:16px">${ini}</div>
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:20px">${courier.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${courier.phone||'No phone'}</div>
+      </div>
+      <span class="status ${courier.active?'status-delivered':'status-cancelled'}" style="margin-left:auto">
+        <span class="status-dot"></span>${courier.active?'Active':'Inactive'}
+      </span>
+    </div>
+    <div class="delivery-stats">
+      <div class="delivery-stat">
+        <div class="delivery-stat-val">${orders.length}</div>
+        <div class="delivery-stat-lbl">Total Orders</div>
+      </div>
+      <div class="delivery-stat">
+        <div class="delivery-stat-val">${transit}</div>
+        <div class="delivery-stat-lbl">In Transit</div>
+      </div>
+      <div class="delivery-stat">
+        <div class="delivery-stat-val">${fmt(revenue)}</div>
+        <div class="delivery-stat-lbl">Total Revenue</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Payment</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+        <tbody>${orders.length ? orders.slice().reverse().map(o=>`
+          <tr>
+            <td class="td-no">#${String(o.id).padStart(3,'0')}</td>
+            <td class="td-muted">${fmtDate(o.date)}</td>
+            <td class="td-name">${o.customer}</td>
+            <td><span class="payment-pill">${o.payment}</span></td>
+            <td class="td-amount">${fmt(o.amount)}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td>
+              <button class="btn btn-sm" onclick="quickStatus(${o.id},'delivered')" ${o.status==='delivered'?'disabled':''}>
+                Mark Delivered
+              </button>
+            </td>
+          </tr>`).join('') :
+          '<tr><td colspan="7"><div class="empty-state"><p>No orders assigned to this courier</p></div></td></tr>'
+        }</tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function quickStatus(orderId, status) {
+  await DB.updateOrder(orderId, { status });
+  await Promise.all([renderCourierList(), renderDetail(), renderMetrics()]);
+  showToast(`Order #${String(orderId).padStart(3,'0')} marked as ${status}`, 'success');
+}
+
+async function assignUnassigned() {
+  const orders = await DB.getOrders();
+  const unass = orders.filter(o=>!o.courierId&&o.status!=='cancelled');
+  if (!unass.length) { showToast('No unassigned orders'); return; }
+  document.getElementById('bulkCount').textContent = `${unass.length} unassigned order${unass.length!==1?'s':''} will be assigned.`;
+  const couriers = await DB.getCouriers();
+  document.getElementById('bulkCourierSel').innerHTML =
+    couriers.filter(c=>c.active).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('bulkModal').classList.add('open');
+}
+function closeBulkModal() { document.getElementById('bulkModal').classList.remove('open'); }
+async function confirmBulkAssign() {
+  const courierId = parseInt(document.getElementById('bulkCourierSel').value);
+  const orders = await DB.getOrders();
+  const unass = orders.filter(o=>!o.courierId&&o.status!=='cancelled');
+  for (const o of unass) await DB.updateOrder(o.id, { courierId });
+  closeBulkModal();
+  await renderAll();
+  showToast(`${unass.length} orders assigned`, 'success');
+}
+function closeAssignModal() { document.getElementById('assignModal').classList.remove('open'); }
+async function confirmAssign() {
+  const courierId = parseInt(document.getElementById('assignCourierSel').value);
+  await DB.updateOrder(assigningOrderId, { courierId });
+  closeAssignModal();
+  await renderAll();
+  showToast('Order assigned', 'success');
+}
+
+async function renderAll() {
+  await Promise.all([renderMetrics(), renderCourierList()]);
+  if (selectedCourierId) await renderDetail();
+}
+
+function showToast(msg,type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show'+(type?' toast-'+type:'');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.className='toast'; },2800);
+}
+
+(async () => {
+  await DB.ready;
+  const user = DB.getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+  else if (user.role === 'courier') window.location.href = 'courier_dashboard.html';
+
+  const s = await DB.getSettings();
+  document.getElementById('sidebarName').textContent   = s.adminName||'Admin';
+  document.getElementById('sidebarBranch').textContent = s.branch||'Campus Branch';
+  document.getElementById('sidebarAvatar').textContent = (s.adminName||'AE').slice(0,2).toUpperCase();
+
+  await renderAll();
+})();
+</script>
+</body>
+</html>
