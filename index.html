@@ -338,9 +338,7 @@
     }
 
     let _ordersCache = [];
-    async function loadOrders() {
-      _ordersCache = await DB.getOrders();
-    }
+    let _couriersCache = [];
 
     function renderOrders() {
       const filterVal = document.getElementById('paymentFilter').value;
@@ -366,83 +364,59 @@
       const c = _couriersCache.find(x => x.id === id);
       return c ? c.name : '—';
     }
-    let _couriersCache = [];
 
-    function renderMetrics() {
-      const orders = _ordersCache;
-      const total = orders.reduce((s, o) => s + o.amount, 0);
-      const active = orders.filter(o => o.status === 'transit').length;
-      const avg = orders.length ? Math.round(total / orders.length) : 0;
-      const max = orders.length ? Math.max(...orders.map(o => o.amount)) : 0;
-      const min = orders.length ? Math.min(...orders.map(o => o.amount)) : 0;
+    function renderMetrics(m) {
       document.getElementById('metricGrid').innerHTML = `
         <div class="metric-card fade d1">
           <div class="metric-label"><span class="dot" style="background:#059669"></span>Total Revenue</div>
-          <div class="metric-value">${fmt(total)}</div>
-          <div class="metric-sub">${orders.length} transactions <span class="metric-badge badge-up">↑ Active</span></div>
+          <div class="metric-value">${fmt(m.total_revenue)}</div>
+          <div class="metric-sub">${m.order_count} transactions <span class="metric-badge badge-up">↑ Active</span></div>
         </div>
         <div class="metric-card fade d2">
           <div class="metric-label"><span class="dot" style="background:#F97316"></span>In Transit</div>
-          <div class="metric-value">${active}</div>
-          <div class="metric-sub">${orders.filter(o => o.status === 'pending').length} pending · ${orders.filter(o => o.status === 'delivered').length} delivered <span class="metric-badge badge-warn">Live</span></div>
+          <div class="metric-value">${m.in_transit}</div>
+          <div class="metric-sub">${m.pending} pending · ${m.delivered} delivered <span class="metric-badge badge-warn">Live</span></div>
         </div>
         <div class="metric-card fade d3">
           <div class="metric-label"><span class="dot" style="background:#2563EB"></span>Avg Order Value</div>
-          <div class="metric-value">${fmt(avg)}</div>
-          <div class="metric-sub">High: ${fmt(max)} · Low: ${fmt(min)}</div>
+          <div class="metric-value">${fmt(m.avg_order_value)}</div>
+          <div class="metric-sub">High: ${fmt(m.max_amount)} · Low: ${fmt(m.min_amount)}</div>
         </div>
       `;
     }
 
-    function renderPayments() {
-      const orders = _ordersCache;
-      const methods = {};
-      orders.forEach(o => { methods[o.payment] = (methods[o.payment] || 0) + o.amount; });
-      const total = Object.values(methods).reduce((a, b) => a + b, 0);
-      const sorted = Object.entries(methods).sort((a, b) => b[1] - a[1]);
-      const maxVal = Math.max(...sorted.map(([, v]) => v));
-      document.getElementById('barChart').innerHTML = sorted.map(([m, v]) => `
+    function renderPayments(payments) {
+      const total = payments.reduce((s, p) => s + p.total, 0);
+      const maxVal = Math.max(...payments.map(p => p.total));
+      document.getElementById('barChart').innerHTML = payments.map(p => `
         <div class="bar-col">
-          <div class="bar" style="height:${Math.round((v / maxVal) * 68)}px;background:${COLORS[m] || '#9CA3AF'}" title="${m}: ${fmt(v)}"></div>
-          <div class="bar-label">${m.split(' ')[0]}</div>
+          <div class="bar" style="height:${Math.round((p.total / maxVal) * 68)}px;background:${COLORS[p.payment] || '#9CA3AF'}" title="${p.payment}: ${fmt(p.total)}"></div>
+          <div class="bar-label">${p.payment.split(' ')[0]}</div>
         </div>
       `).join('');
-      document.getElementById('paymentRows').innerHTML = sorted.map(([m, v]) => {
-        const pct = Math.round((v / total) * 100);
+      document.getElementById('paymentRows').innerHTML = payments.map(p => {
+        const pct = Math.round((p.total / total) * 100);
         return `
           <div class="payment-row">
-            <div class="payment-method">${m}</div>
-            <div class="payment-bar-wrap"><div class="payment-bar" style="width:${pct}%;background:${COLORS[m] || '#9CA3AF'}"></div></div>
+            <div class="payment-method">${p.payment}</div>
+            <div class="payment-bar-wrap"><div class="payment-bar" style="width:${pct}%;background:${COLORS[p.payment] || '#9CA3AF'}"></div></div>
             <div class="payment-pct">${pct}%</div>
-            <div class="payment-amount">${fmt(v)}</div>
+            <div class="payment-amount">${fmt(p.total)}</div>
           </div>`;
       }).join('');
     }
 
-    function renderCouriers() {
-      const orders = _ordersCache;
-      const couriers = _couriersCache;
-      const stats = {};
-      orders.forEach(o => {
-        if (o.courierId) {
-          if (!stats[o.courierId]) stats[o.courierId] = { deliveries: 0, revenue: 0 };
-          stats[o.courierId].deliveries++;
-          stats[o.courierId].revenue += o.amount;
-        }
-      });
-      const sorted = Object.entries(stats).sort((a, b) => b[1].deliveries - a[1].deliveries);
-      document.getElementById('courierList').innerHTML = sorted.length ? sorted.map(([id, data], i) => {
-        const courier = couriers.find(c => c.id === parseInt(id));
-        const name = courier ? courier.name : 'Unknown';
-        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    function renderCouriers(stats) {
+      document.getElementById('courierList').innerHTML = stats.length ? stats.map((c, i) => {
+        const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
         return `
           <div class="courier-card">
             <div class="courier-av" style="background:${AV_COLORS[i % AV_COLORS.length]}">${initials}</div>
             <div>
-              <div class="courier-name">${name}</div>
-              <div class="courier-deliveries">${data.deliveries} deliveries</div>
+              <div class="courier-name">${c.name}</div>
+              <div class="courier-deliveries">${c.deliveries} deliveries</div>
             </div>
-            <div class="courier-revenue">${fmt(data.revenue)}</div>
+            <div class="courier-revenue">${fmt(c.revenue)}</div>
           </div>`;
       }).join('') : '<div class="empty-state"><p>No courier data yet</p></div>';
     }
@@ -469,11 +443,17 @@
     }
 
     async function renderAll() {
-      await Promise.all([loadOrders(), DB.getCouriers().then(c => _couriersCache = c)]);
-      renderMetrics();
+      const [dash, orders, couriers] = await Promise.all([
+        DB.getDashboardMetrics(),
+        DB.getOrders(),
+        DB.getCouriers(),
+      ]);
+      _ordersCache = orders;
+      _couriersCache = couriers;
+      renderMetrics(dash.metrics);
+      renderPayments(dash.payments);
+      renderCouriers(dash.courierStats);
       renderOrders();
-      renderPayments();
-      renderCouriers();
       renderCustomers();
     }
 

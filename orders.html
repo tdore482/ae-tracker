@@ -262,7 +262,7 @@
   <script src="db.js"></script>
   <script>
     const PAGE_SIZE = 20;
-    let filtered = [], currentPage = 1, sortKey = 'date', sortDir = -1, editingOrderId = null, deletingOrderId = null;
+    let filtered = [], currentPage = 1, totalCount = 0, sortKey = 'date', sortDir = -1, editingOrderId = null, deletingOrderId = null;
     let _couriersCache = [];
 
     function fmt(n) { return 'MK ' + Number(n).toLocaleString(); }
@@ -298,45 +298,57 @@
         couriers.filter(c => c.active).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
 
+    function goPage(n) { currentPage = n; applyFilters(false); window.scrollTo(0, 0); }
+
     function sortBy(key) {
       if (sortKey === key) sortDir *= -1;
       else { sortKey = key; sortDir = -1; }
       applyFilters();
     }
 
-    async function applyFilters() {
+    async function applyFilters(resetPage = true) {
+      if (resetPage) currentPage = 1;
       const q = document.getElementById('searchInput').value.toLowerCase();
       const status = document.getElementById('statusFilter').value;
       const payment = document.getElementById('paymentFilter').value;
       const courier = document.getElementById('courierFilter').value;
-      let orders = await DB.getOrders();
-      if (status !== 'all') orders = orders.filter(o => o.status === status);
-      if (payment !== 'all') orders = orders.filter(o => o.payment === payment);
-      if (courier !== 'all') orders = orders.filter(o => String(o.courierId) === courier);
-      if (q) orders = orders.filter(o =>
-        o.customer.toLowerCase().includes(q) || o.phone.includes(q) || o.location.toLowerCase().includes(q)
-      );
-      orders.sort((a, b) => {
-        let va = a[sortKey] || '', vb = b[sortKey] || '';
-        if (typeof va === 'number') return (va - vb) * sortDir;
-        return String(va).localeCompare(String(vb)) * sortDir;
-      });
-      filtered = orders;
-      currentPage = 1;
-      document.getElementById('orderCount').textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
+      const offset = (currentPage - 1) * PAGE_SIZE;
+
+      if (!q) {
+        const result = await DB.getOrdersPage({ status, payment, courierId: courier, sortKey, sortDir, offset, limit: PAGE_SIZE });
+        filtered = result.data;
+        totalCount = result.count;
+      } else {
+        let orders = await DB.getOrders();
+        if (status !== 'all') orders = orders.filter(o => o.status === status);
+        if (payment !== 'all') orders = orders.filter(o => o.payment === payment);
+        if (courier !== 'all') orders = orders.filter(o => String(o.courierId) === courier);
+        if (q) orders = orders.filter(o =>
+          o.customer.toLowerCase().includes(q) || o.phone.includes(q) || o.location.toLowerCase().includes(q)
+        );
+        orders.sort((a, b) => {
+          let va = a[sortKey] || '', vb = b[sortKey] || '';
+          if (typeof va === 'number') return (va - vb) * sortDir;
+          return String(va).localeCompare(String(vb)) * sortDir;
+        });
+        filtered = orders.slice(offset, offset + PAGE_SIZE);
+        totalCount = orders.length;
+      }
+
+      document.getElementById('orderCount').textContent = `${totalCount} order${totalCount !== 1 ? 's' : ''}`;
       render();
     }
 
     function render() {
-      const total = filtered.length;
+      const total = totalCount;
       const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-      const start = (currentPage - 1) * PAGE_SIZE;
-      const slice = filtered.slice(start, start + PAGE_SIZE);
+      const start = (currentPage - 1) * PAGE_SIZE + 1;
+      const end = Math.min(currentPage * PAGE_SIZE, total);
 
       document.getElementById('pageInfo').textContent =
-        `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total}`;
+        total ? `Showing ${start}–${end} of ${total}` : 'No results';
 
-      document.getElementById('orderBody').innerHTML = slice.length ? slice.map(o => `
+      document.getElementById('orderBody').innerHTML = filtered.length ? filtered.map(o => `
         <tr class="order-row">
           <td class="td-avatar"><div class="avatar-circle">${getInitials(o.customer)}</div></td>
           <td class="td-no">#${String(o.id).padStart(3, '0')}</td>
@@ -373,8 +385,6 @@
       }
       document.getElementById('pageBtns').innerHTML = btns;
     }
-
-    function goPage(n) { currentPage = n; render(); window.scrollTo(0, 0); }
 
     async function cycleStatus(id) {
       const orders = await DB.getOrders();

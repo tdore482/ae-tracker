@@ -3,7 +3,8 @@
 // ============================================================
 //  1. Replace SUPABASE_URL and SUPABASE_ANON_KEY below.
 //  2. Run supabase/migrations/001_schema.sql in your Supabase
-//     SQL Editor, then supabase/seed.sql.
+//     SQL Editor, then supabase/migrations/002_optimization.sql,
+//     then supabase/seed.sql.
 //  3. That's it — no build step, no CDN scripts needed.
 // ============================================================
 
@@ -55,20 +56,28 @@ const DB = {
     session: 'ae_session',
   },
 
-  _headers() {
-    return {
+  _headers(prefer) {
+    const h = {
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
     };
+    h['Prefer'] = prefer || 'return=representation';
+    return h;
   },
 
-  async _get(table, params = {}) {
+  async _get(table, params = {}, options = {}) {
+    const headers = this._headers(options.countExact ? 'return=representation, count=exact' : undefined);
     const q = new URLSearchParams({ select: '*', ...params });
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, { headers: this._headers() });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, { headers });
     if (!res.ok) throw new Error(`GET ${table} [${res.status}] ${await res.text()}`);
-    return res.json();
+    const data = await res.json();
+    if (options.countExact) {
+      const range = res.headers.get('content-range');
+      const count = range ? parseInt(range.split('/')[1], 10) : data.length;
+      return { data, count };
+    }
+    return data;
   },
 
   async _post(table, rows) {
@@ -98,6 +107,71 @@ const DB = {
     const existing = await this._get(table, { select: 'id' });
     for (const item of existing) await this._delete(table, item.id);
     if (list.length) await this._post(table, list.map(transform || (x => x)));
+  },
+
+  // ── RPC ────────────────────────────────────────────────────
+  async rpc(fn, params = {}) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST', headers: this._headers(), body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error(`RPC ${fn} [${res.status}] ${await res.text()}`);
+    return res.json();
+  },
+
+  async getDashboardMetrics() {
+    try {
+      const [metrics, payments, courierStats] = await Promise.all([
+        this.rpc('get_dashboard_metrics'),
+        this.rpc('get_payment_breakdown'),
+        this.rpc('get_courier_stats'),
+      ]);
+      return { metrics, payments, courierStats };
+    } catch {
+      const orders = await this.getOrders();
+      const couriers = await this.getCouriers();
+      const total = orders.reduce((s, o) => s + o.amount, 0);
+      const metrics = {
+        total_revenue: total,
+        order_count: orders.length,
+        in_transit: orders.filter(o => o.status === 'transit').length,
+        pending: orders.filter(o => o.status === 'pending').length,
+        delivered: orders.filter(o => o.status === 'delivered').length,
+        avg_order_value: orders.length ? Math.round(total / orders.length) : 0,
+        max_amount: orders.length ? Math.max(...orders.map(o => o.amount)) : 0,
+        min_amount: orders.length ? Math.min(...orders.map(o => o.amount)) : 0,
+      };
+      const pmtMap = {};
+      orders.forEach(o => { pmtMap[o.payment] = (pmtMap[o.payment] || 0) + o.amount; });
+      const payments = Object.entries(pmtMap).map(([payment, total]) => ({ payment, total, count: orders.filter(o => o.payment === payment).length }));
+      const courierStatsMap = {};
+      orders.forEach(o => {
+        if (o.courierId) {
+          if (!courierStatsMap[o.courierId]) courierStatsMap[o.courierId] = { id: o.courierId, deliveries: 0, revenue: 0, in_transit: 0, delivered: 0 };
+          courierStatsMap[o.courierId].deliveries++;
+          courierStatsMap[o.courierId].revenue += o.amount;
+          if (o.status === 'transit') courierStatsMap[o.courierId].in_transit++;
+          if (o.status === 'delivered') courierStatsMap[o.courierId].delivered++;
+        }
+      });
+      const courierStats = couriers.map(c => ({
+        ...courierStatsMap[c.id] || { id: c.id, deliveries: 0, revenue: 0, in_transit: 0, delivered: 0 },
+        name: c.name,
+      })).sort((a, b) => b.deliveries - a.deliveries);
+      return { metrics, payments, courierStats };
+    }
+  },
+
+  async getDailyRevenue(days = 7) {
+    try {
+      return await this.rpc('get_daily_revenue', { days });
+    } catch {
+      const allOrders = await this.getOrders();
+      const cutoff = days ? new Date(Date.now() - days * 86400000).toISOString().split('T')[0] : '';
+      const filtered = days ? allOrders.filter(o => o.date >= cutoff) : allOrders;
+      const map = {};
+      filtered.forEach(o => { map[o.date] = (map[o.date] || 0) + o.amount; });
+      return Object.entries(map).map(([date, total]) => ({ date, total, count: filtered.filter(o => o.date === date).length }));
+    }
   },
 
   // ── Session (localStorage) ─────────────────────────────────
@@ -171,9 +245,25 @@ const DB = {
   },
 
   // ── Orders ─────────────────────────────────────────────────
+  O_FIELDS: 'id,date,customer,phone,location,payment,courier_id,amount,status,notes',
+
   async getOrders() {
-    const data = await this._get('orders', { order: 'id.desc' });
+    const data = await this._get('orders', { select: this.O_FIELDS, order: 'id.desc' });
     return toCamel(data || []);
+  },
+
+  async getOrdersPage(filters = {}) {
+    const params = {
+      select: this.O_FIELDS,
+      order: `${filters.sortKey || 'id'}.${filters.sortDir === 'asc' ? 'asc' : 'desc'}`,
+    };
+    if (filters.status && filters.status !== 'all') params.status = `eq.${filters.status}`;
+    if (filters.payment && filters.payment !== 'all') params.payment = `eq.${filters.payment}`;
+    if (filters.courierId && filters.courierId !== 'all') params.courier_id = `eq.${filters.courierId}`;
+    if (filters.offset !== undefined) params.offset = String(filters.offset);
+    if (filters.limit !== undefined) params.limit = String(filters.limit);
+    const result = await this._get('orders', params, { countExact: true });
+    return { data: toCamel(result.data || []), count: result.count };
   },
   async saveOrders(list) {
     await this._replace('orders', list, toSnake);
@@ -193,8 +283,10 @@ const DB = {
   },
 
   // ── Customers ──────────────────────────────────────────────
+  C_FIELDS: 'id,name,phone,location,notes',
+
   async getCustomers() {
-    return (await this._get('customers', { order: 'name.asc' })) || [];
+    return (await this._get('customers', { select: this.C_FIELDS, order: 'name.asc' })) || [];
   },
   async saveCustomers(list) {
     await this._replace('customers', list, toSnake);
@@ -213,8 +305,10 @@ const DB = {
   },
 
   // ── Couriers ───────────────────────────────────────────────
+  R_FIELDS: 'id,name,phone,active,passcode',
+
   async getCouriers() {
-    return (await this._get('couriers', { order: 'name.asc' })) || [];
+    return (await this._get('couriers', { select: this.R_FIELDS, order: 'name.asc' })) || [];
   },
   async saveCouriers(list) {
     await this._replace('couriers', list, toSnake);
@@ -235,18 +329,18 @@ const DB = {
 
   // ── Payment Methods ────────────────────────────────────────
   async getPayments() {
-    const data = await this._get('payment_methods', { order: 'id.asc' });
+    const data = await this._get('payment_methods', { select: 'name', order: 'id.asc' });
     return (data || []).map(p => p.name);
   },
   async savePayments(names) {
-    const existing = await this._get('payment_methods', { select: 'id' });
+    const existing = await this._get('payment_methods', { select: 'id,name' });
     for (const p of existing) await this._delete('payment_methods', p.id);
     if (names.length) await this._post('payment_methods', names.map(n => ({ name: n })));
   },
 
   // ── Settings ───────────────────────────────────────────────
   async getSettings() {
-    const data = await this._get('settings');
+    const data = await this._get('settings', { select: 'id,currency,branch,admin_name,next_order_id,admin_passcode' });
     return toCamel(data?.[0]) || { currency: 'MK', branch: 'Campus Branch', adminName: 'Admin', nextOrderId: 1, adminPasscode: '0000' };
   },
   async saveSettings(s) {

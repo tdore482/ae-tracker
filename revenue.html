@@ -278,33 +278,20 @@
       await render();
     }
 
-    async function getFiltered() {
-      const allOrders = await DB.getOrders();
-      if (!period) return allOrders;
-      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - period);
-      const cutStr = cutoff.toISOString().split('T')[0];
-      return allOrders.filter(o => o.date >= cutStr);
-    }
-
-    function getDailyMap(orders) {
-      const map = {};
-      orders.forEach(o => { map[o.date] = (map[o.date] || 0) + o.amount; });
-      return map;
-    }
-
     async function render() {
-      const orders = await getFiltered();
-      const all = await DB.getOrders();
-      const total = orders.reduce((s, o) => s + o.amount, 0);
-      const count = orders.length;
+      const dailyRevenue = await DB.getDailyRevenue(period);
+      const orders = await DB.getOrders();
+      const total = dailyRevenue.reduce((s, d) => s + Number(d.total), 0);
+      const count = dailyRevenue.reduce((s, d) => s + d.count, 0);
       const avg = count ? Math.round(total / count) : 0;
-      const dailyMap = getDailyMap(orders);
-      const days = Object.keys(dailyMap).sort();
+      const days = dailyRevenue.map(d => d.date).sort();
+      const dailyMap = {};
+      dailyRevenue.forEach(d => { dailyMap[d.date] = Number(d.total); });
       const values = days.map(d => dailyMap[d]);
       const maxVal = Math.max(...values, 1);
 
-      const prevOrders = all.filter(o => !orders.includes(o));
-      const prevTotal = prevOrders.reduce((s, o) => s + o.amount, 0);
+      const totalAll = orders.reduce((s, o) => s + o.amount, 0);
+      const prevTotal = totalAll - total;
       const change = prevTotal ? Math.round(((total - prevTotal) / prevTotal) * 100) : null;
 
       document.getElementById('revMetrics').innerHTML = `
@@ -336,7 +323,8 @@
       }).join('');
 
       const pmtMap = {};
-      orders.forEach(o => { pmtMap[o.payment] = (pmtMap[o.payment] || 0) + o.amount; });
+      const filteredOrders = period ? orders.filter(o => o.date >= new Date(Date.now() - period * 86400000).toISOString().split('T')[0]) : orders;
+      filteredOrders.forEach(o => { pmtMap[o.payment] = (pmtMap[o.payment] || 0) + o.amount; });
       const pmtTotal = Object.values(pmtMap).reduce((a, b) => a + b, 0);
       const pmtSorted = Object.entries(pmtMap).sort((a, b) => b[1] - a[1]);
       const pmtMaxVal = Math.max(...pmtSorted.map(([, v]) => v), 1);
@@ -362,7 +350,8 @@
         const v = dailyMap[d];
         const prev = revDays[i + 1] ? dailyMap[revDays[i + 1]] : null;
         const diff = prev ? Math.round(((v - prev) / prev) * 100) : null;
-        const ordCount = orders.filter(o => o.date === d).length;
+        const dayData = dailyRevenue.find(x => x.date === d);
+        const ordCount = dayData ? dayData.count : 0;
         return `<tr>
         <td class="td-muted">${fmtDate(d)}</td>
         <td class="td-muted">${ordCount}</td>
@@ -373,9 +362,11 @@
     }
 
     async function exportCSV() {
-      const orders = await getFiltered();
+      const orders = await DB.getOrders();
+      const cutoff = period ? new Date(Date.now() - period * 86400000).toISOString().split('T')[0] : '';
+      const filtered = period ? orders.filter(o => o.date >= cutoff) : orders;
       const rows = [['Date', 'Customer', 'Payment', 'Amount', 'Status']];
-      orders.forEach(o => rows.push([o.date, o.customer, o.payment, o.amount, o.status]));
+      filtered.forEach(o => rows.push([o.date, o.customer, o.payment, o.amount, o.status]));
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
